@@ -4,7 +4,7 @@ Este proyecto ha sido generado usando [Angular CLI](https://github.com/angular/a
 
 ## Instalar dependencias
 
-Luego de clonar el repositorio y entrar a la carpeta del proyecto deben instalar node para reconstruir el `node_modeles`, ejecutan:
+Luego de clonar el repositorio y entrar a la carpeta del proyecto deben instalar node para reconstruir el `node_modules`, ejecutan:
 
 ```bash
 npm install
