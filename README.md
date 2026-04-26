@@ -2,7 +2,21 @@
 
 Este proyecto ha sido generado usando [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
 
+## Clonar el repositorio
+
+Para clonar el proyecto, ejecutan:
+
+```bash
+git https://github.com/u202525251/proyecto-final-desarrollo-entorno-web.git
+```
+
 ## Instalar dependencias
+
+Para entrar a la carpeta, ejecutan:
+
+```bash
+cd proyecto-final-desarrollo-entorno-web
+```
 
 Luego de clonar el repositorio y entrar a la carpeta del proyecto deben instalar node para reconstruir el `node_modules`, ejecutan:
 
