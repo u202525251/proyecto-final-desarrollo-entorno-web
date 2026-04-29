@@ -1,0 +1,41 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <img
+        src="images/SalaConnectLogo.png"
+        alt="SalaConnect"
+        class="login-logo-img"
+      >
+    </div>
+
+    <p class="login-subtitle">Gestión inteligente de salas, visitas y EPP</p>
+
+    <form (ngSubmit)="ingresar()">
+      <label for="correo">Correo corporativo</label>
+      <input
+        type="email"
+        id="correo"
+        name="correo"
+        [(ngModel)]="correo"
+        placeholder="usuario@empresa.com.pe"
+        required
+      >
+
+      <label for="password">Contraseña</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="password"
+        placeholder="Ingresa tu contraseña"
+        required
+      >
+
+      <button type="submit" class="btn-login">
+        Ingresar
+      </button>
+
+      <div class="mensaje-error">{{ mensajeError }}</div>
+    </form>
+  </div>
+</div>

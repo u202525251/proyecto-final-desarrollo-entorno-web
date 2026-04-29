@@ -1,0 +1,53 @@
+<aside class="sidebar">
+  <div>
+    <div class="sidebar-brand">
+      <img
+        src="images/SalaConnectLogoLight.png"
+        alt="SalaConnect"
+        class="sidebar-logo"
+      >
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.key) {
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+        >
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </div>
+
+  <div>
+    <div style="margin-bottom:14px;padding:10px 8px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:0.78rem;color:rgba(255,255,255,0.5);font-weight:600">
+        {{ modeLabel }}
+      </span>
+
+      <label class="switch">
+        <input
+          type="checkbox"
+          [checked]="viewMode === 'admin'"
+          (change)="toggleViewMode($event)"
+        >
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    @if (user) {
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          <span>👤</span>
+        </div>
+
+        <div>
+          <strong>{{ user.nombre }}</strong>
+          <p>{{ roleLabel }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</aside>
