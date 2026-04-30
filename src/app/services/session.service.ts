@@ -14,9 +14,9 @@ export class SessionService {
       sede: 'Sede Principal — Oficinas'
     },
     {
-      correo: 'alumno2@upc.edu.pe',
+      correo: 'U202419732@upc.edu.pe',
       password: '123456',
-      nombre: 'Alumno 2',
+      nombre: 'Katya Iman Ccaihuari',
       rol: 'Administrador',
       cargo: 'Supervisor de TI',
       sede: 'San Borja'
