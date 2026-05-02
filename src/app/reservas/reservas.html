@@ -1,1 +1,84 @@
-<h1>Reservas</h1>
+    <div class="reservas-container">
+    <h1>Buscar y Reservar Sala</h1>
+
+    <section class="filters-card">
+        <div class="filter-group">
+        <label>Sede</label>
+        <select [(ngModel)]="sedeSeleccionada">
+            <option>Todas</option>
+            <option>Oficinas</option>
+            <option>Almacén</option>
+        </select>
+        </div>
+
+        <div class="filter-group">
+        <label>Tipo de sala</label>
+        <select [(ngModel)]="tipoSeleccionado">
+            <option>Todas</option>
+            <option>Premium</option>
+            <option>Ejecutiva</option>
+            <option>Juntas</option>
+            <option>Almacén</option>
+            <option>Capacitación</option>
+        </select>
+        </div>
+
+        <div class="filter-group">
+        <label>Capacidad mínima: {{ capacidadMinima }}</label>
+        <input type="range" min="1" max="20" [(ngModel)]="capacidadMinima">
+        </div>
+
+        <div class="filter-group">
+        <label>Equipamiento</label>
+        <select [(ngModel)]="equipamientoSeleccionado">
+            <option>Todos</option>
+            <option>Videoconferencia</option>
+            <option>Casting inalámbrico</option>
+            <option>Pizarra táctil</option>
+            <option>Pantalla estándar</option>
+            <option>Micrófono</option>
+            <option>Sonido ambiental</option>
+        </select>
+        </div>
+
+        <button class="clear-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+    </section>
+
+    <p class="result-count">{{ salasFiltradas.length }} sala(s) encontrada(s)</p>
+
+    <section class="rooms-grid">
+        <div class="room-card" *ngFor="let sala of salasFiltradas">
+        <div class="room-header">
+            <div>
+            <h3>{{ sala.nombre }}</h3>
+            <p>{{ sala.sede }} · {{ sala.piso }} · {{ sala.tipo }}</p>
+            </div>
+
+            <span
+            class="status"
+            [class.enabled]="sala.estado === 'Habilitada'"
+            [class.disabled]="sala.estado === 'Deshabilitada'">
+            {{ sala.estado }}
+            </span>
+        </div>
+
+        <p class="capacity">
+            <i class="fa-solid fa-users"></i>
+            {{ sala.capacidad }} personas
+        </p>
+
+        <div class="equipment-list">
+            <span *ngFor="let item of sala.equipamiento">
+            {{ item }}
+            </span>
+        </div>
+
+        <button
+            class="reserve-btn"
+            [disabled]="sala.estado === 'Deshabilitada'"
+            (click)="reservarSala(sala)">
+            {{ sala.estado === 'Habilitada' ? 'Reservar' : 'No disponible' }}
+        </button>
+        </div>
+    </section>
+    </div>

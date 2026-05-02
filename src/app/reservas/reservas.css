@@ -1,0 +1,142 @@
+    .reservas-container {
+    padding: 40px;
+    }
+
+    .reservas-container h1 {
+    margin-bottom: 24px;
+    color: #1f1f3d;
+    }
+
+    .filters-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 18px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    margin-bottom: 22px;
+    }
+
+    .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .filter-group label {
+    font-weight: 700;
+    font-size: 14px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+    height: 44px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 0 12px;
+    }
+
+    .clear-btn {
+    background: transparent;
+    border: none;
+    color: #4b2383;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    }
+
+    .result-count {
+    color: #6f6a8a;
+    margin-bottom: 16px;
+    }
+
+    .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    }
+
+    .room-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 22px;
+    min-height: 210px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .room-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    }
+
+    .room-header h3 {
+    margin: 0 0 6px;
+    color: #1f1f3d;
+    }
+
+    .room-header p,
+    .capacity {
+    margin: 0 0 12px;
+    color: #6f6a8a;
+    }
+
+    .status {
+    height: fit-content;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    }
+
+    .enabled {
+    background: #dff9f7;
+    color: #009688;
+    }
+
+    .disabled {
+    background: #ffe3e3;
+    color: #d93636;
+    }
+
+    .equipment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+    }
+
+    .equipment-list span {
+    background: #f0eff6;
+    color: #33304f;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    }
+
+    .reserve-btn {
+    float: right;
+    background: #5b2fa0;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    }
+
+    .reserve-btn:disabled {
+    background: #b79ad8;
+    cursor: not-allowed;
+    }
+
+    @media (max-width: 1100px) {
+    .filters-card {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .rooms-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    }

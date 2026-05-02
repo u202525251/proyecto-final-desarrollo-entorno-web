@@ -1,1 +1,100 @@
-<h1>Recepción</h1>
+    <section class="recepcion-container">
+    <div class="module-header">
+        <div class="module-icon">
+        <i class="fa-solid fa-helmet-safety"></i>
+        </div>
+
+        <div>
+        <h1>Módulo Recepción</h1>
+        <p>Gestión de EPP - Sede Almacén</p>
+        </div>
+    </div>
+
+    <section class="stats-grid">
+        <div class="stat-card" *ngFor="let stat of stats">
+        <div class="stat-icon">
+            <i [class]="stat.icon"></i>
+        </div>
+        <div>
+            <h2>{{ stat.value }}</h2>
+            <p>{{ stat.label }}</p>
+        </div>
+        </div>
+    </section>
+
+    <section class="alert-grid">
+        <div class="alert-card" *ngFor="let alerta of alertas" [ngClass]="alerta.type">
+        <div class="alert-top">
+            <div class="alert-icon">
+            <i [class]="alerta.icon"></i>
+            </div>
+            <strong>{{ alerta.value }}</strong>
+        </div>
+
+        <h3>{{ alerta.title }}</h3>
+        <p>{{ alerta.detail }}</p>
+        </div>
+    </section>
+
+    <section class="meeting-card" *ngFor="let reunion of reuniones" [ngClass]="reunion.estadoClase">
+        <div class="meeting-header">
+        <div>
+            <h3>{{ reunion.titulo }}</h3>
+
+            <div class="meeting-meta">
+            <span><i class="fa-regular fa-clock"></i> {{ reunion.hora }}</span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ reunion.sala }}</span>
+            </div>
+        </div>
+
+        <span class="status-dot" [ngClass]="reunion.estadoClase">
+            {{ reunion.estado }}
+        </span>
+        </div>
+
+        <div class="visitors-title">
+        <i class="fa-solid fa-users"></i>
+        <strong>Visitantes programados</strong>
+        </div>
+
+        <div class="visitor-row" *ngFor="let visitante of reunion.visitantes">
+        <div class="visitor-info">
+            <div class="avatar">{{ visitante.iniciales }}</div>
+            <div>
+            <h4>{{ visitante.nombre }}</h4>
+            <p>{{ visitante.empresa }}</p>
+            </div>
+        </div>
+
+        <span
+            class="visitor-status"
+            [ngClass]="{
+            pending: visitante.estado === 'Pendiente recojo',
+            delivered: visitante.estado === 'Entregado',
+            returned: visitante.estado === 'Devuelto'
+            }">
+            {{ visitante.estado }}
+        </span>
+
+        <div class="actions">
+            <button
+            [class.active-orange]="visitante.estado === 'Pendiente recojo'"
+            (click)="marcarEstado(visitante, 'Pendiente recojo')">
+            <i class="fa-solid fa-box-open"></i> Pendiente
+            </button>
+
+            <button
+            [class.active-purple]="visitante.estado === 'Entregado'"
+            (click)="marcarEstado(visitante, 'Entregado')">
+            <i class="fa-regular fa-circle-check"></i> Entregado
+            </button>
+
+            <button
+            [class.active-gray]="visitante.estado === 'Devuelto'"
+            (click)="marcarEstado(visitante, 'Devuelto')">
+            <i class="fa-solid fa-rotate-left"></i> Devuelto
+            </button>
+        </div>
+        </div>
+    </section>
+    </section>

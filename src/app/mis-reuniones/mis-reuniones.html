@@ -1,1 +1,83 @@
-<h1>Mis Reuniones</h1>
+    <section class="mis-reservas-container">
+    <div class="page-header">
+        <h1>Mis Reservas</h1>
+
+        <select [(ngModel)]="filtro" class="filter-select">
+        <option>Todas</option>
+        <option>Confirmada</option>
+        <option>Pendiente</option>
+        </select>
+    </div>
+
+    <div class="reservation-card" *ngFor="let reserva of reservasFiltradas">
+        <div class="reservation-content">
+        <h3>
+            {{ reserva.titulo }}
+            <span>• {{ reserva.sala }}</span>
+        </h3>
+
+        <div class="reservation-meta">
+            <span><i class="fa-regular fa-calendar"></i> {{ reserva.fecha }}</span>
+            <span><i class="fa-regular fa-clock"></i> {{ reserva.hora }}</span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ reserva.sala }}</span>
+        </div>
+
+        <div class="badges">
+            <span class="badge confirmada" *ngIf="reserva.estado === 'Confirmada'">
+            <i class="fa-solid fa-check"></i> Confirmada
+            </span>
+
+            <span class="badge pendiente" *ngIf="reserva.estado === 'Pendiente'">
+            <i class="fa-regular fa-clock"></i> Pendiente
+            </span>
+
+            <span class="badge checkin" *ngIf="reserva.checkin">
+            {{ reserva.checkin }}
+            </span>
+
+            <span class="badge interno">
+            <i class="fa-solid fa-building"></i> {{ reserva.internos }} interno(s)
+            </span>
+
+            <span class="badge externo">
+            <i class="fa-regular fa-user"></i> {{ reserva.externos }} externo(s)
+            </span>
+
+            <span class="badge epp" *ngIf="reserva.epp">
+            <i class="fa-solid fa-helmet-safety"></i> {{ reserva.epp }}
+            </span>
+        </div>
+
+        <div class="participants">
+            <span
+            class="participant"
+            *ngFor="let persona of reserva.participantes"
+            [ngClass]="{
+                organizador: persona.tipo === 'Organizador',
+                internoPersona: persona.tipo === 'Interno corporativo',
+                proveedor: persona.tipo === 'Proveedor',
+                cliente: persona.tipo === 'Cliente',
+                externoPersona: persona.tipo === 'Corporativo externo'
+            }"
+            >
+            {{ persona.nombre }}
+            <small>{{ persona.tipo }}</small>
+            </span>
+        </div>
+        </div>
+
+        <div class="reservation-actions">
+        <button class="qr-btn" *ngIf="reserva.qr" (click)="mostrarQR(reserva)">
+            <i class="fa-solid fa-qrcode"></i> Mostrar QR
+        </button>
+
+        <button class="edit-btn" (click)="editarReserva(reserva)">
+            <i class="fa-solid fa-pen"></i> Editar
+        </button>
+
+        <button class="delete-btn" (click)="eliminarReserva(reserva)">
+            <i class="fa-solid fa-trash-can"></i>
+        </button>
+        </div>
+    </div>
+    </section>
