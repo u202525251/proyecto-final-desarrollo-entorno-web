@@ -1,1 +1,480 @@
-<h1>Administración</h1>
+<section class="admin-header">
+  <h1>Administración</h1>
+  <p>Gestión de EPP, roles, políticas y auditoría del sistema</p>
+</section>
+
+<div class="admin-tabs">
+  @for (tab of tabs; track tab.key) {
+    <button
+      class="admin-tab"
+      [class.active]="currentTab === tab.key"
+      type="button"
+      (click)="switchTab(tab.key)"
+    >
+      <i [attr.data-lucide]="tab.icon"></i>
+      {{ tab.label }}
+    </button>
+  }
+</div>
+
+@if (currentTab === 'epp') {
+  <div class="admin-card">
+    <h2>Catálogo de EPP</h2>
+    <p>Gestiona el inventario de equipos de protección personal para sede Almacén</p>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-table-responsive">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Equipo</th>
+            <th>Stock disponible</th>
+            <th>Stock mínimo</th>
+            <th>En uso</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (ep of eppCatalog; track ep.id) {
+            <tr>
+              <td data-label="Ícono" style="font-size:1.3rem;text-align:center">
+                {{ ep.icono }}
+              </td>
+
+              <td data-label="Equipo" style="font-weight:600">
+                {{ ep.nombre }}
+              </td>
+
+              <td data-label="Stock disponible">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font-weight:700;min-width:24px">
+                    {{ ep.stock }}
+                  </span>
+
+                  <div class="stock-bar" style="width:80px">
+                    <div
+                      class="stock-bar-fill"
+                      [class.ok]="getStockClass(ep) === 'ok'"
+                      [class.low]="getStockClass(ep) === 'low'"
+                      [class.critical]="getStockClass(ep) === 'critical'"
+                      [style.width.%]="getStockPct(ep)"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+
+              <td data-label="Stock mínimo">
+                {{ ep.stockMinimo }}
+              </td>
+
+              <td data-label="En uso">
+                {{ ep.enUso }}
+              </td>
+
+              <td data-label="Estado">
+                <span
+                  class="badge"
+                  [class.badge-success]="getBadgeClass(ep) === 'badge-success'"
+                  [class.badge-warning]="getBadgeClass(ep) === 'badge-warning'"
+                  [class.badge-info]="getBadgeClass(ep) === 'badge-info'"
+                  [style.background]="getStockClass(ep) === 'critical' ? 'rgba(224,90,90,0.1)' : null"
+                  [style.color]="getStockClass(ep) === 'critical' ? '#C94A4A' : null"
+                  [style.border-color]="getStockClass(ep) === 'critical' ? 'rgba(224,90,90,0.2)' : null"
+                >
+                  {{ getStockLabel(ep) }}
+                </span>
+              </td>
+
+              <td data-label="Acciones">
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                  <button
+                    class="btn-admin-sm edit"
+                    type="button"
+                    (click)="editEpp(ep.id)"
+                  >
+                    <i data-lucide="pencil"></i>
+                    Editar
+                  </button>
+
+                  <button
+                    class="btn-admin-sm danger"
+                    type="button"
+                    (click)="delEpp(ep.id)"
+                  >
+                    <i data-lucide="trash-2"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="admin-inline-form">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input name="newEppNombre" [(ngModel)]="newEppNombre">
+      </div>
+
+      <div class="form-group">
+        <label>Stock</label>
+        <input type="number" name="newEppStock" [(ngModel)]="newEppStock">
+      </div>
+
+      <div class="form-group">
+        <label>Stock mínimo</label>
+        <input type="number" name="newEppMin" [(ngModel)]="newEppMin">
+      </div>
+
+      <button
+        class="btn-admin-save"
+        type="button"
+        (click)="addEpp()"
+      >
+        <i data-lucide="plus"></i>
+        Agregar
+      </button>
+    </div>
+  </div>
+}
+
+@if (currentTab === 'roles') {
+  <div class="admin-card">
+    <h2>Gestión de Roles</h2>
+    <p>
+      Busca usuarios del Active Directory y asígnales un rol para que puedan acceder a SalaConnect.
+      Los datos personales vienen del AD y solo el rol se administra desde el sistema.
+    </p>
+
+    <div class="admin-inline-form">
+      <div class="form-group" style="min-width:260px">
+        <label>Buscar usuario en AD</label>
+        <input
+          name="busquedaUsuario"
+          [(ngModel)]="busquedaUsuario"
+          placeholder="Nombre o correo"
+          (input)="buscarUsuarioAD()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Rol a asignar</label>
+        <select
+          class="role-select role-select-asignar"
+          name="rolSeleccionado"
+          [(ngModel)]="rolSeleccionado"
+        >
+          <option value="Administrador">Administrador</option>
+          <option value="Usuario">Usuario</option>
+          <option value="Recepción">Recepción</option>
+        </select>
+      </div>
+
+      <button
+        class="btn-admin-save"
+        type="button"
+        (click)="asignarRolAD()"
+      >
+        <i data-lucide="user-plus"></i>
+        Asignar Rol
+      </button>
+    </div>
+
+    @if (resultadosAD.length > 0) {
+      <div class="admin-table-wrap" style="margin-top:16px">
+        <table class="admin-table admin-table-responsive">
+          <thead>
+            <tr>
+              <th>Usuario AD</th>
+              <th>Correo</th>
+              <th>Cargo</th>
+              <th>Sede</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (u of resultadosAD; track u.correo) {
+              <tr>
+                <td data-label="Usuario AD" style="font-weight:600">
+                  {{ u.nombre }}
+                </td>
+
+                <td data-label="Correo" style="color:#7c7c95;word-break:break-word">
+                  {{ u.correo }}
+                  <span class="ad-tag">AD</span>
+                </td>
+
+                <td data-label="Cargo" style="color:#7c7c95;word-break:break-word">
+                  {{ u.cargo }}
+                  <span class="ad-tag">AD</span>
+                </td>
+
+                <td data-label="Sede" style="color:#7c7c95">
+                  {{ u.sede }}
+                  <span class="ad-tag">AD</span>
+                </td>
+
+                <td data-label="Acción">
+                    @if (usuarioTieneAcceso(u)) {
+                        <span class="badge badge-success">
+                        Usuario ya agregado
+                        </span>
+                    } @else {
+                        <button
+                        class="btn-admin-sm edit"
+                        type="button"
+                        (click)="seleccionarUsuarioAD(u)"
+                        >
+                        <i data-lucide="check"></i>
+                        Seleccionar
+                        </button>
+                    }
+                    </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (usuarioSeleccionadoAD) {
+      <div class="policy-alert" style="margin-top:16px">
+        <i data-lucide="info"></i>
+
+        <span>
+          Usuario seleccionado:
+          <strong>{{ usuarioSeleccionadoAD.nombre }}</strong>
+          —
+          {{ usuarioSeleccionadoAD.correo }}
+          —
+          {{ usuarioSeleccionadoAD.cargo }}
+          —
+          {{ usuarioSeleccionadoAD.sede }}
+        </span>
+      </div>
+    }
+  </div>
+
+  <div class="admin-card">
+    <h2>Usuarios con acceso al sistema</h2>
+    <p>
+      Aquí solo se muestran los usuarios que ya tienen un rol asignado en SalaConnect.
+    </p>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-table-responsive">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Cargo</th>
+            <th>Sede</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (u of usuarios; track u.correo; let i = $index) {
+            <tr>
+              <td data-label="Usuario" style="font-weight:600">
+                {{ u.nombre }}
+              </td>
+
+              <td data-label="Correo" style="color:#7c7c95;word-break:break-word">
+                {{ u.correo }}
+                <span class="ad-tag">AD</span>
+              </td>
+
+              <td data-label="Cargo" style="color:#7c7c95;word-break:break-word">
+                {{ u.cargo }}
+                <span class="ad-tag">AD</span>
+              </td>
+
+              <td data-label="Sede" style="color:#7c7c95">
+                {{ u.sede }}
+                <span class="ad-tag">AD</span>
+              </td>
+
+              <td data-label="Rol">
+                <select
+                  class="role-select"
+                  [value]="u.rol"
+                  (change)="changeRole(i, $event)"
+                >
+                  <option value="Administrador">Administrador</option>
+                  <option value="Usuario">Usuario</option>
+                  <option value="Recepción">Recepción</option>
+                </select>
+              </td>
+
+              <td data-label="Acciones">
+                <button
+                    class="btn-admin-sm danger"
+                    type="button"
+                    (click)="eliminarAccesoUsuario(i)"
+                >
+                    <i data-lucide="trash-2"></i>
+                    Eliminar
+                </button>
+                </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+@if (currentTab === 'politicas') {
+  <div class="admin-card">
+    <h2>Políticas de Reserva</h2>
+    <p>Configura los límites y restricciones para evitar abusos en las reservas</p>
+
+    <div class="policy-grid">
+      <div class="policy-item">
+        <label>Duración máxima por reserva</label>
+        <p>Tiempo máximo que un usuario puede reservar una sala en una sola sesión</p>
+
+        <div style="display:flex;align-items:center;gap:8px">
+          <input
+            type="number"
+            name="maxDuracionHoras"
+            [(ngModel)]="policies.maxDuracionHoras"
+            min="1"
+            max="12"
+          >
+
+          <span style="color:#7c7c95;font-size:0.86rem;white-space:nowrap">
+            horas
+          </span>
+        </div>
+      </div>
+
+      <div class="policy-item">
+        <label>Límite de repetición</label>
+        <p>Máximo de meses en el futuro para reservas recurrentes</p>
+
+        <div style="display:flex;align-items:center;gap:8px">
+          <input
+            type="number"
+            name="maxRepeticionMeses"
+            [(ngModel)]="policies.maxRepeticionMeses"
+            min="1"
+            max="12"
+          >
+
+          <span style="color:#7c7c95;font-size:0.86rem;white-space:nowrap">
+            meses
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="policy-alert">
+      <i data-lucide="triangle-alert"></i>
+
+      <span>
+        Las reservas que se repitan más allá de
+        <strong>{{ policies.maxRepeticionMeses }} meses</strong>
+        serán rechazadas automáticamente. La duración máxima es de
+        <strong>{{ policies.maxDuracionHoras }} horas</strong> por reserva.
+      </span>
+    </div>
+
+    <div style="margin-top:16px;text-align:right">
+      <button
+        class="btn-admin-save"
+        type="button"
+        (click)="savePolicies()"
+      >
+        <i data-lucide="save"></i>
+        Guardar Políticas
+      </button>
+    </div>
+  </div>
+}
+
+@if (currentTab === 'auditoria') {
+  <div class="admin-card">
+    <h2>Auditoría del Sistema</h2>
+    <p>Registro visual de todas las acciones realizadas en SalaConnect</p>
+
+    <div class="audit-filters">
+      @for (f of filtrosAuditoria; track f.key) {
+        <button
+          class="audit-filter-btn"
+          [class.active]="auditFilter === f.key"
+          type="button"
+          (click)="setAuditFilter(f.key)"
+        >
+          {{ f.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="audit-charts">
+    <div class="chart-card">
+      <h2>Acciones por tipo</h2>
+      <p>Distribución de eventos registrados</p>
+
+      <div style="max-width:280px;margin:0 auto">
+        <canvas id="chart-audit-type"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h2>Actividad diaria</h2>
+      <p>Acciones registradas por día</p>
+
+      <canvas id="chart-audit-daily" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <h2>Timeline de Eventos</h2>
+    <p>Últimas {{ getFilteredAudit().length }} acciones registradas</p>
+
+    <div class="audit-timeline">
+      @for (a of getFilteredAudit(); track a.id; let i = $index) {
+        <div
+          class="audit-entry"
+          [style.animation-delay.s]="i * 0.04"
+        >
+          <div class="audit-dot-col">
+            <div
+              class="audit-dot"
+              [class.reserva]="a.tipo === 'reserva'"
+              [class.epp]="a.tipo === 'epp'"
+              [class.admin]="a.tipo === 'admin'"
+            >
+              <i [attr.data-lucide]="getAuditIcon(a.tipo)"></i>
+            </div>
+          </div>
+
+          <div class="audit-body">
+            <h4>{{ a.accion }}</h4>
+            <p>{{ a.detalle }}</p>
+
+            <div class="audit-meta">
+              <span>
+                <i data-lucide="user"></i>
+                {{ a.usuario }}
+              </span>
+
+              <span>
+                <i data-lucide="clock"></i>
+                {{ a.timestamp }}
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
