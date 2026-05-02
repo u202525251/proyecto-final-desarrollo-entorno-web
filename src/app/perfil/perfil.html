@@ -1,1 +1,71 @@
-<h1>Perfil</h1>
+<section class="perfil-header">
+  <h1>Mi Perfil</h1>
+</section>
+
+@if (user) {
+  <section class="perfil-card" id="perfil-info">
+    <div class="perfil-top">
+      <div class="perfil-avatar">
+        <i data-lucide="user"></i>
+      </div>
+
+      <div class="perfil-main-info">
+        <h2>{{ user.nombre }}</h2>
+        <p>{{ user.cargo }}</p>
+      </div>
+    </div>
+
+    <div class="perfil-divider"></div>
+
+    <div class="perfil-details">
+      <div class="perfil-detail-item">
+        <i data-lucide="mail"></i>
+        <span>{{ user.correo }}</span>
+      </div>
+
+      <div class="perfil-detail-item">
+        <i data-lucide="home"></i>
+        <span>{{ user.sede }}</span>
+      </div>
+
+      <div class="perfil-detail-item">
+        <i data-lucide="shield"></i>
+        <span>Rol: {{ user.rol }}</span>
+      </div>
+    </div>
+  </section>
+}
+
+<section class="perfil-card">
+  <div class="section-title section-title-dark">
+    <i data-lucide="bell"></i>
+    <h2>Notificaciones</h2>
+  </div>
+
+  <div class="notification-list" id="notif-list">
+    @for (item of notificaciones; track item.titulo) {
+      <div class="notification-item">
+        <div>
+          <h3>{{ item.titulo }}</h3>
+          <p>{{ item.descripcion }}</p>
+        </div>
+
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="logout-box">
+  <button
+    class="btn-logout"
+    type="button"
+    (click)="cerrarSesion()"
+  >
+    <i data-lucide="log-out"></i>
+    Cerrar Sesión
+  </button>
+</section>

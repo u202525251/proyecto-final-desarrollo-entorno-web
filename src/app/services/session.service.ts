@@ -4,11 +4,11 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class SessionService {
-  private usuarios = [
+  private usuariosInit = [
     {
       correo: 'u202525251@upc.edu.pe',
       password: '123456',
-      nombre: 'Bill Flores',
+      nombre: 'Bill Flores Castillo',
       rol: 'Administrador',
       cargo: 'Administrador de Operaciones',
       sede: 'Sede Principal — Oficinas'
@@ -39,36 +39,22 @@ export class SessionService {
     }
   ];
 
-  getUsuarios() {
-    const usuariosGuardados = sessionStorage.getItem('sc_usuarios');
-
-    if (usuariosGuardados) {
-      return JSON.parse(usuariosGuardados);
-    }
-
-    return this.usuarios;
-  }
-
-  setUsuarios(usuarios: any[]) {
-    sessionStorage.setItem('sc_usuarios', JSON.stringify(usuarios));
-  }
-
   getUser() {
-    const user = sessionStorage.getItem('sc_user');
+    try {
+      const user = sessionStorage.getItem('sc_user');
 
-    if (user) {
-      return JSON.parse(user);
+      if (user) {
+        return JSON.parse(user);
+      }
+
+      return null;
+    } catch (e) {
+      return null;
     }
-
-    return null;
   }
 
   setUser(user: any) {
     sessionStorage.setItem('sc_user', JSON.stringify(user));
-  }
-
-  clearUser() {
-    sessionStorage.removeItem('sc_user');
   }
 
   getViewMode() {
@@ -77,6 +63,24 @@ export class SessionService {
 
   setViewMode(viewMode: string) {
     sessionStorage.setItem('sc_viewMode', viewMode);
+  }
+
+  getUsuarios() {
+    try {
+      const usuarios = sessionStorage.getItem('sc_usuarios');
+
+      if (usuarios) {
+        return JSON.parse(usuarios);
+      }
+
+      return this.usuariosInit;
+    } catch (e) {
+      return this.usuariosInit;
+    }
+  }
+
+  setUsuarios(usuarios: any[]) {
+    sessionStorage.setItem('sc_usuarios', JSON.stringify(usuarios));
   }
 
   login(correo: string, password: string) {
@@ -98,8 +102,15 @@ export class SessionService {
     return user;
   }
 
+  requireLogin() {
+    if (!this.getUser()) {
+      return false;
+    }
+
+    return true;
+  }
+
   logout() {
-    sessionStorage.removeItem('sc_user');
-    sessionStorage.removeItem('sc_viewMode');
+    sessionStorage.clear();
   }
 }
