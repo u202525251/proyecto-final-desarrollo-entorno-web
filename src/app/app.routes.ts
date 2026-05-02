@@ -8,12 +8,14 @@ import { Recepcion } from './recepcion/recepcion';
 import { Reportes } from './reportes/reportes';
 import { Admin } from './admin/admin';
 import { Perfil } from './perfil/perfil';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: Login },
   {
     path: '',
     component: Layout,
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
       { path: 'reservas', component: Reservas },

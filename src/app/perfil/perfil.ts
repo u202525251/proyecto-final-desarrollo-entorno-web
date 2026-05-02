@@ -36,11 +36,6 @@ export class Perfil implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    if (!this.sessionService.requireLogin()) {
-      this.router.navigate(['/']);
-      return;
-    }
-
     this.user = this.sessionService.getUser();
   }
 
