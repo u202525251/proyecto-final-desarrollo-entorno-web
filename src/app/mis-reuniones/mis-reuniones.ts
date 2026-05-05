@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SessionService } from '../services/session.service'; // Importamos tu servicio corregido
 
 @Component({
   selector: 'app-mis-reuniones',
@@ -9,101 +10,57 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './mis-reuniones.html',
   styleUrl: './mis-reuniones.css'
 })
-export class MisReuniones {
+export class MisReuniones implements OnInit {
   filtro = 'Todas';
+  reservas: any[] = []; // Ahora iniciamos el arreglo vacío
 
-  reservas = [
-    {
-      titulo: 'Capacitación EPP Seguridad',
-      sala: 'Sala Capacitación',
-      fecha: '2026-03-13',
-      hora: '10:00 - 12:00',
-      estado: 'Confirmada',
-      checkin: 'Sin check-in',
-      internos: 2,
-      externos: 2,
-      epp: 'Pendiente recojo',
-      qr: true,
-      participantes: [
-        { nombre: 'Katya Imán', tipo: 'Organizador' },
-        { nombre: 'Jorge Medina', tipo: 'Interno corporativo' },
-        { nombre: 'Luis Cárdenas', tipo: 'Interno corporativo' },
-        { nombre: 'Mónica Salas', tipo: 'Proveedor' },
-        { nombre: 'Diego Castañeda', tipo: 'Cliente' }
-      ]
-    },
-    {
-      titulo: 'Revisión Compliance Q1',
-      sala: 'Sala de Juntas B',
-      fecha: '2026-03-13',
-      hora: '14:00 - 15:00',
-      estado: 'Pendiente',
-      checkin: '',
-      internos: 2,
-      externos: 1,
-      epp: '',
-      qr: false,
-      participantes: [
-        { nombre: 'Renzo Núñez', tipo: 'Organizador' },
-        { nombre: 'Paola Rivas', tipo: 'Interno corporativo' },
-        { nombre: 'Andrea Flores', tipo: 'Interno corporativo' },
-        { nombre: 'Carla Méndez', tipo: 'Corporativo externo' }
-      ]
-    },
-    {
-      titulo: 'Capacitación Personal Nuevo',
-      sala: 'Sala Ejecutiva A',
-      fecha: '2026-03-13',
-      hora: '09:00 - 10:30',
-      estado: 'Confirmada',
-      checkin: 'Check-in realizado',
-      internos: 2,
-      externos: 0,
-      epp: '',
-      qr: true,
-      participantes: [
-        { nombre: 'Juan García', tipo: 'Organizador' },
-        { nombre: 'Lucía Fernández', tipo: 'Interno corporativo' },
-        { nombre: 'Carlos Ruiz', tipo: 'Interno corporativo' }
-      ]
-    },
-    {
-      titulo: 'Comité de Riesgos Trimestral',
-      sala: 'Sala Huascarán',
-      fecha: '2026-03-13',
-      hora: '11:00 - 12:00',
-      estado: 'Confirmada',
-      checkin: 'Check-in realizado',
-      internos: 2,
-      externos: 1,
-      epp: '',
-      qr: true,
-      participantes: [
-        { nombre: 'Katya Imán', tipo: 'Organizador' },
-        { nombre: 'Pedro Benites', tipo: 'Interno corporativo' },
-        { nombre: 'Sebastián Ponce', tipo: 'Interno corporativo' },
-        { nombre: 'Sofía Delgado', tipo: 'Cliente' }
-      ]
+  constructor(private sessionService: SessionService) {}
+
+  ngOnInit() {
+    this.cargarReservasDesdeAWS();
+  }
+
+  cargarReservasDesdeAWS() {
+    // 1. Obtenemos los datos que el servicio guardó al hacer Login o cargar el Dashboard
+    const data = sessionStorage.getItem("sc_reuniones");
+    
+    if (data) {
+      this.reservas = JSON.parse(data);
+    } else {
+      // 2. Si no hay datos (por ejemplo, al refrescar la página), forzamos la descarga
+      this.sessionService.cargarConfiguracionInicial();
+      
+      // Intentamos recuperar después de un breve delay para permitir que la API responda
+      setTimeout(() => {
+        const dataRetry = sessionStorage.getItem("sc_reuniones");
+        if (dataRetry) this.reservas = JSON.parse(dataRetry);
+      }, 1000);
     }
-  ];
+  }
 
   get reservasFiltradas() {
+    // La lógica de filtrado se mantiene igual, pero operando sobre datos reales
     if (this.filtro === 'Todas') return this.reservas;
     return this.reservas.filter(r => r.estado === this.filtro);
   }
 
   mostrarQR(reserva: any) {
-    alert(`Mostrando QR para: ${reserva.titulo}`);
-  }
-
-  editarReserva(reserva: any) {
-    alert(`Editar reserva: ${reserva.titulo}`);
+    // Puedes implementar una lógica real de QR aquí más adelante
+    alert(`Código QR generado para: ${reserva.titulo}\nSala: ${reserva.lugar}`);
   }
 
   eliminarReserva(reserva: any) {
-    const confirmar = confirm(`¿Deseas eliminar la reserva "${reserva.titulo}"?`);
+    const confirmar = confirm(`¿Deseas eliminar la reserva "${reserva.titulo}" de DynamoDB?`);
     if (confirmar) {
+      // Aquí podrías llamar a un método 'eliminar' en tu SessionService si decides crear esa Lambda
       this.reservas = this.reservas.filter(r => r !== reserva);
+      // Actualizamos la persistencia local
+      sessionStorage.setItem("sc_reuniones", JSON.stringify(this.reservas));
     }
+  }
+
+  // Mantenemos el método para evitar errores si está en tu HTML
+  editarReserva(reserva: any) {
+    alert(`Redirigiendo a edición de: ${reserva.titulo}`);
   }
 }

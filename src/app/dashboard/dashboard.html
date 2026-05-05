@@ -2,11 +2,13 @@
   <div class="main-wrapper">
     <main class="main-content">
 
+      <!-- Saludo personalizado usando el usuario de SessionService -->
       <section class="dashboard-header">
         <h1>Bienvenid@ {{ user?.nombre }}</h1>
-        <p>Vista consolidada de tus reuniones y recursos</p>
+        <p>Vista consolidada de tus reuniones y recursos (AWS Cloud Sync)</p>
       </section>
 
+      <!-- Tarjetas de estadísticas dinámicas (HU-10) -->
       <section class="stats-grid">
         <div class="stat-card" *ngFor="let stat of stats">
           <div class="stat-icon">{{ stat.icon }}</div>
@@ -17,59 +19,45 @@
         </div>
       </section>
 
+      <!-- Listado de reuniones recuperadas de la tabla bdreuniones[cite: 7] -->
       <section class="dashboard-section">
         <div class="section-title">
-          <i data-lucide="calendar"></i>
           <h2>Reuniones Futuras</h2>
+        </div>
+
+        <div *ngIf="reunionesFuturas.length === 0" class="no-data-msg">
+          <p>No hay reuniones programadas en DynamoDB.</p>
         </div>
 
         <div class="meeting-card" *ngFor="let reunion of reunionesFuturas">
           <div>
             <h3>{{ reunion.titulo }}</h3>
-            <p>{{ reunion.fecha }} | {{ reunion.hora }} | {{ reunion.sala }}</p>
-            <p *ngIf="reunion.visitantes">
-              {{ reunion.visitantes }} visitante(s) externo(s)
-            </p>
+            <p>{{ reunion.fecha }} | {{ reunion.hora }} | {{ reunion.lugar }}</p>
+            <p *ngIf="reunion.externos">Incluye visitantes externos</p>
           </div>
-
           <div>
-            <span class="badge confirmada" *ngIf="reunion.estado === 'Confirmada'">
-              Confirmada
-            </span>
-            <span class="badge pendiente" *ngIf="reunion.estado === 'Pendiente'">
-              Pendiente
-            </span>
-            <span class="badge epp" *ngIf="reunion.epp">
-              EPP
-            </span>
+            <span class="badge confirmada" *ngIf="reunion.estado === 'confirmada'">Confirmada</span>
+            <span class="badge epp" *ngIf="reunion.epp">EPP Requerido</span>
           </div>
         </div>
       </section>
 
       <section class="bottom-grid">
-
+        <!-- Historial de reuniones (Trazabilidad HU-09)[cite: 1, 7] -->
         <div class="dashboard-section">
-          <div class="section-title">
-            <i data-lucide="clock"></i>
-            <h2>Reuniones Pasadas</h2>
-          </div>
-
+          <div class="section-title"><h2>Reuniones Pasadas</h2></div>
           <div class="history-card" *ngFor="let reunion of reunionesPasadas">
             <div>
               <h3>{{ reunion.titulo }}</h3>
-              <p>{{ reunion.detalle }}</p>
-              <p>{{ reunion.asistentes }}</p>
+              <p>{{ reunion.fecha }} | {{ reunion.lugar }}</p>
             </div>
             <button>↻ Repetir</button>
           </div>
         </div>
 
+        <!-- Inventario de EPP sincronizado con la tabla bdepp (HU-06)[cite: 1, 7] -->
         <div class="dashboard-section">
-          <div class="section-title">
-            <i data-lucide="hard-hat"></i>
-            <h2>Estado de EPP</h2>
-          </div>
-
+          <div class="section-title"><h2>Estado de Inventario EPP</h2></div>
           <div class="epp-card" *ngFor="let epp of listaEpp">
             <span class="dot" [ngClass]="epp.color"></span>
             <div>
@@ -79,7 +67,6 @@
             <small>{{ epp.estado }}</small>
           </div>
         </div>
-
       </section>
 
     </main>
