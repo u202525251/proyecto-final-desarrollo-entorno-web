@@ -34,24 +34,25 @@ export class Login {
       next: (res: any) => {
         if (res.authenticated) {
           this.mensajeError = '';
-          
-          // 1. Guardamos el usuario autenticado desde DynamoDB
+
           localStorage.setItem('user', JSON.stringify(res.user));
-          
-          // 2. MODIFICACIÓN CRÍTICA: Sincronizar datos de AWS antes de navegar
-          // Esto descarga salas, epp y reuniones de tus Lambdas
+
           this.sessionService.cargarConfiguracionInicial();
 
-          // 3. Navegar al panel principal
           this.router.navigate(['/dashboard']);
+        } else {
+          this.mensajeError = 'Correo o contraseña incorrectos.';
         }
       },
-      error: (err: any) => { 
+      error: (err: any) => {
         console.error('Error en autenticación AWS:', err);
+
         if (err.status === 401) {
           this.mensajeError = 'Correo o contraseña incorrectos.';
+        } else if (err.status === 403) {
+          this.mensajeError = 'El usuario no tiene acceso al sistema.';
         } else {
-          this.mensajeError = 'No se pudo conectar con el servicio de autenticación de AWS.';
+          this.mensajeError = 'No se pudo conectar con el servicio de autenticación.';
         }
       }
     });

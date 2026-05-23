@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SessionService } from '../services/session.service';
 
@@ -14,7 +14,10 @@ export class Admin implements OnInit, AfterViewInit {
 
   eppCatalog: any[] = [];
   usuarios: any[] = [];
-  policies: any = {};
+  policies: any = {
+    maxDuracionHoras: 4,
+    maxRepeticionMeses: 3
+  };
   auditLog: any[] = [];
 
   newEppNombre: string = '';
@@ -30,52 +33,27 @@ export class Admin implements OnInit, AfterViewInit {
   chartDaily: any = null;
 
   tabs = [
-    {
-      key: 'epp',
-      label: 'EPP',
-      icon: 'package'
-    },
-    {
-      key: 'roles',
-      label: 'Roles',
-      icon: 'users'
-    },
-    {
-      key: 'politicas',
-      label: 'Políticas',
-      icon: 'lock'
-    },
-    {
-      key: 'auditoria',
-      label: 'Auditoría',
-      icon: 'activity'
-    }
+    { key: 'epp', label: 'EPP', icon: 'package' },
+    { key: 'roles', label: 'Roles', icon: 'users' },
+    { key: 'politicas', label: 'Políticas', icon: 'lock' },
+    { key: 'auditoria', label: 'Auditoría', icon: 'activity' }
   ];
 
   filtrosAuditoria = [
-    {
-      key: 'todos',
-      label: 'Todos'
-    },
-    {
-      key: 'reserva',
-      label: 'Reservas'
-    },
-    {
-      key: 'epp',
-      label: 'EPP'
-    },
-    {
-      key: 'admin',
-      label: 'Administración'
-    }
+    { key: 'todos', label: 'Todos' },
+    { key: 'reserva', label: 'Reservas' },
+    { key: 'epp', label: 'EPP' },
+    { key: 'admin', label: 'Administración' }
   ];
 
-  constructor(private sessionService: SessionService) {}
+  constructor(
+    private sessionService: SessionService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.eppCatalog = this.sessionService.getEppCatalog();
-    this.usuarios = this.sessionService.getUsuarios();
+    this.cargarUsuariosSistema();
     this.policies = this.sessionService.getPolicies();
     this.auditLog = this.sessionService.getAuditLog();
   }
@@ -94,13 +72,192 @@ export class Admin implements OnInit, AfterViewInit {
     }, 0);
   }
 
+  cargarUsuariosSistema() {
+    this.sessionService.getUsuariosSistema().subscribe({
+      next: (data: any[]) => {
+        this.usuarios = [...data];
+        this.cdr.detectChanges();
+        this.cargarIconos();
+      },
+      error: (err: any) => {
+        console.error('Error al cargar usuarios del sistema', err);
+        this.showToast('No se pudieron cargar los usuarios del sistema');
+      }
+    });
+  }
+
   switchTab(tab: string) {
     this.currentTab = tab;
     this.cargarIconos();
 
+    if (tab === 'roles') {
+      this.cargarUsuariosSistema();
+    }
+
     if (tab === 'auditoria') {
       this.cargarGraficos();
     }
+  }
+
+  buscarUsuarioAD() {
+    const texto = this.busquedaUsuario.trim();
+
+    if (texto.length < 2) {
+      this.resultadosAD = [];
+      this.usuarioSeleccionadoAD = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.sessionService.buscarUsuariosAD(texto).subscribe({
+      next: (data: any[]) => {
+        this.resultadosAD = [...data];
+        this.usuarioSeleccionadoAD = null;
+        this.cdr.detectChanges();
+        this.cargarIconos();
+      },
+      error: (err: any) => {
+        console.error('Error al buscar usuarios AD', err);
+        this.showToast('No se pudo buscar usuarios');
+      }
+    });
+  }
+
+  seleccionarUsuarioAD(usuario: any) {
+    this.usuarioSeleccionadoAD = usuario;
+    this.resultadosAD = [];
+    this.busquedaUsuario = usuario.nombre;
+    this.cdr.detectChanges();
+    this.cargarIconos();
+  }
+
+  usuarioTieneAcceso(usuarioAD: any) {
+    return this.usuarios.some(
+      (u: any) => u.correo.toLowerCase() === usuarioAD.correo.toLowerCase()
+    );
+  }
+
+  asignarRolAD() {
+    if (!this.usuarioSeleccionadoAD) {
+      this.showToast('Selecciona un usuario del AD');
+      return;
+    }
+
+    if (this.usuarioTieneAcceso(this.usuarioSeleccionadoAD)) {
+      this.showToast('El usuario ya tiene acceso al sistema');
+      return;
+    }
+
+    const usuarioSeleccionado = this.usuarioSeleccionadoAD;
+    const rolAsignado = this.rolSeleccionado;
+
+    this.sessionService.asignarRolUsuarioAD(
+      usuarioSeleccionado,
+      rolAsignado
+    ).subscribe({
+      next: (res: any) => {
+        const nuevoUsuario = {
+          correo: usuarioSeleccionado.correo,
+          nombre: usuarioSeleccionado.nombre,
+          cargo: usuarioSeleccionado.cargo,
+          sede: usuarioSeleccionado.sede,
+          rol: rolAsignado,
+          acceso: true
+        };
+
+        this.usuarios = [
+          ...this.usuarios.filter(
+            (u: any) => u.correo.toLowerCase() !== nuevoUsuario.correo.toLowerCase()
+          ),
+          nuevoUsuario
+        ];
+
+        this.busquedaUsuario = '';
+        this.resultadosAD = [];
+        this.usuarioSeleccionadoAD = null;
+        this.rolSeleccionado = 'Usuario';
+
+        this.cdr.detectChanges();
+        this.showToast(res?.mensaje || 'Rol asignado correctamente');
+        this.cargarIconos();
+
+        setTimeout(() => {
+          this.cargarUsuariosSistema();
+        }, 300);
+      },
+      error: (err: any) => {
+        console.error('Error al asignar rol', err);
+        this.showToast('No se pudo asignar el rol');
+      }
+    });
+  }
+
+  changeRole(i: number, event: Event) {
+    const val = (event.target as HTMLSelectElement).value;
+    const usuario = this.usuarios[i];
+
+    this.sessionService.actualizarRolUsuario(usuario.correo, val).subscribe({
+      next: (res: any) => {
+        const usuariosActualizados = [...this.usuarios];
+
+        usuariosActualizados[i] = {
+          ...usuariosActualizados[i],
+          rol: val
+        };
+
+        this.usuarios = usuariosActualizados;
+
+        this.cdr.detectChanges();
+        this.showToast(res?.mensaje || 'Rol actualizado correctamente');
+        this.cargarIconos();
+
+        setTimeout(() => {
+          this.cargarUsuariosSistema();
+        }, 300);
+      },
+      error: (err: any) => {
+        console.error('Error al actualizar rol', err);
+        this.showToast('No se pudo actualizar el rol');
+
+        setTimeout(() => {
+          this.cargarUsuariosSistema();
+        }, 300);
+      }
+    });
+  }
+
+  eliminarAccesoUsuario(i: number) {
+    const usuario = this.usuarios[i];
+
+    const confirmar = confirm(
+      '¿Está seguro que desea eliminar el acceso de ' + usuario.nombre + ' al sistema?'
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.sessionService.eliminarAccesoUsuario(usuario.correo).subscribe({
+      next: (res: any) => {
+        this.usuarios = this.usuarios.filter(
+          (u: any) => u.correo.toLowerCase() !== usuario.correo.toLowerCase()
+        );
+
+        this.resultadosAD = this.resultadosAD.map((u: any) => ({ ...u }));
+
+        this.cdr.detectChanges();
+        this.showToast(res?.mensaje || 'Acceso revocado correctamente');
+        this.cargarIconos();
+
+        setTimeout(() => {
+          this.cargarUsuariosSistema();
+        }, 300);
+      },
+      error: (err: any) => {
+        console.error('Error al eliminar acceso', err);
+        this.showToast('No se pudo eliminar el acceso');
+      }
+    });
   }
 
   getStockPct(ep: any) {
@@ -202,78 +359,6 @@ export class Admin implements OnInit, AfterViewInit {
     this.newEppMin = '';
 
     this.showToast('EPP agregado');
-    this.cargarIconos();
-  }
-
-  buscarUsuarioAD() {
-    this.resultadosAD = this.sessionService.buscarUsuariosAD(this.busquedaUsuario);
-    this.usuarioSeleccionadoAD = null;
-    this.cargarIconos();
-  }
-
-  seleccionarUsuarioAD(usuario: any) {
-    this.usuarioSeleccionadoAD = usuario;
-    this.resultadosAD = [];
-    this.busquedaUsuario = usuario.nombre;
-    this.cargarIconos();
-  }
-
-  usuarioTieneAcceso(usuarioAD: any) {
-    return this.usuarios.some(
-      (u: any) => u.correo.toLowerCase() === usuarioAD.correo.toLowerCase()
-    );
-  }
-
-  asignarRolAD() {
-    if (!this.usuarioSeleccionadoAD) {
-      this.showToast('Selecciona un usuario del AD');
-      return;
-    }
-
-    if (this.usuarioTieneAcceso(this.usuarioSeleccionadoAD)) {
-      this.showToast('El usuario ya tiene acceso al sistema');
-      return;
-    }
-
-    this.sessionService.asignarRolUsuarioAD(
-      this.usuarioSeleccionadoAD,
-      this.rolSeleccionado
-    );
-
-    this.usuarios = this.sessionService.getUsuarios();
-
-    this.busquedaUsuario = '';
-    this.resultadosAD = [];
-    this.usuarioSeleccionadoAD = null;
-    this.rolSeleccionado = 'Usuario';
-
-    this.showToast('Usuario agregado al sistema');
-    this.cargarIconos();
-  }
-
-  changeRole(i: number, event: Event) {
-    const val = (event.target as HTMLSelectElement).value;
-
-    this.usuarios[i].rol = val;
-    this.sessionService.setUsuarios(this.usuarios);
-    this.showToast('Rol de ' + this.usuarios[i].nombre + ' actualizado a ' + val);
-  }
-
-  eliminarAccesoUsuario(i: number) {
-    const usuario = this.usuarios[i];
-
-    const confirmar = confirm(
-      '¿Está seguro que desea eliminar el acceso de ' + usuario.nombre + ' al sistema?'
-    );
-
-    if (!confirmar) {
-      return;
-    }
-
-    this.usuarios.splice(i, 1);
-    this.sessionService.setUsuarios(this.usuarios);
-
-    this.showToast('Acceso eliminado para ' + usuario.nombre);
     this.cargarIconos();
   }
 

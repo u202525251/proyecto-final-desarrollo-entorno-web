@@ -7,20 +7,20 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class SessionService {
-  // --- Endpoints de AWS (API Gateway) ---
-  // Endpoint para validación de credenciales en la tabla bdusuarios
-  private loginUrl = 'https://895ci6fkk9.execute-api.us-east-1.amazonaws.com/default/loginSalaconect';
-  
-  // Endpoint de lectura para cargar configuración inicial (Salas, EPP, Reuniones)
+  // API Gateway para login y gestión de usuarios
+  private readonly USUARIOS_API_URL = 'https://u410rk5wc9.execute-api.us-east-1.amazonaws.com/';
+
+  // Endpoint de lectura para cargar configuración inicial: salas, EPP y reuniones
   private readonly GET_DATA_URL = 'https://du7n8szqs8.execute-api.us-east-1.amazonaws.com/default/obtenerDatosIniciales';
-  
-  // Endpoint de escritura para persistir nuevas reservas en DynamoDB
+
+  // Endpoint de escritura para crear reuniones
   private readonly POST_REUNION_URL = 'https://ke0ytyb0p0.execute-api.us-east-1.amazonaws.com/default/crearReunion';
 
-  // --- Estado Interno de la Aplicación ---
-  private viewMode: string = 'admin'; 
-  private policies: any[] = [];
-  private usuarios: any[] = [];
+  private viewMode: string = 'admin';
+  private policies: any = {
+    maxDuracionHoras: 4,
+    maxRepeticionMeses: 3
+  };
   private eppCatalog: any[] = [];
   private auditLog: any[] = [];
 
@@ -29,50 +29,54 @@ export class SessionService {
     private router: Router
   ) {}
 
-  // --- Sincronización con Infraestructura Serverless ---
+  // ============================================================
+  // Datos iniciales generales
+  // ============================================================
 
-  /**
-   * Recupera datos en tiempo real de AWS y los persiste en la sesión[cite: 6].
-   * Esto elimina la dependencia de datos fijos y habilita el dinamismo del sistema[cite: 5].
-   */
   cargarConfiguracionInicial(): void {
     this.http.get(this.GET_DATA_URL).subscribe({
       next: (res: any) => {
-        // Almacenamiento local para optimizar el rendimiento del Frontend[cite: 6]
-        sessionStorage.setItem("sc_salas", JSON.stringify(res.salas));
-        sessionStorage.setItem("sc_epp", JSON.stringify(res.epp));
-        sessionStorage.setItem("sc_reuniones", JSON.stringify(res.reuniones));
-        
-        // Actualización de catálogos locales[cite: 6]
-        this.setEppCatalog(res.epp);
-        console.log("Sincronización con DynamoDB completada.");
+        sessionStorage.setItem('sc_salas', JSON.stringify(res.salas || []));
+        sessionStorage.setItem('sc_epp', JSON.stringify(res.epp || []));
+        sessionStorage.setItem('sc_reuniones', JSON.stringify(res.reuniones || []));
+
+        this.setEppCatalog(res.epp || []);
+
+        console.log('Sincronización con DynamoDB completada.');
       },
-      error: (err) => console.error('Fallo en la conexión con AWS:', err)
+      error: (err) => {
+        console.error('Fallo en la conexión con AWS:', err);
+      }
     });
   }
 
-  /**
-   * Envía una nueva reserva (HU-01) a AWS y refresca las listas locales[cite: 1, 6].
-   */
   crearReserva(datos: any): Observable<any> {
     return this.http.post(this.POST_REUNION_URL, datos).pipe(
       tap(() => this.cargarConfiguracionInicial())
     );
   }
 
-  // --- Lógica de Autenticación y Seguridad ---
+  // ============================================================
+  // Login
+  // ============================================================
 
   login(email: string, pass: string): Observable<any> {
-    const body = { email: email, password: pass };
-    return this.http.post(this.loginUrl, body);
+    const body = {
+      email: email,
+      password: pass
+    };
+
+    return this.http.post<any>(`${this.USUARIOS_API_URL}/login`, body);
   }
 
   requireLogin(): boolean {
     const user = this.getUser();
+
     if (!user) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/']);
       return false;
     }
+
     return true;
   }
 
@@ -83,69 +87,101 @@ export class SessionService {
 
   logout(): void {
     localStorage.removeItem('user');
-    sessionStorage.clear(); // Limpia datos sensibles al cerrar sesión[cite: 6]
-    this.router.navigate(['/login']);
+    sessionStorage.clear();
+    this.router.navigate(['/']);
   }
 
-  // --- Gestión de Usuarios (Solución a errores en admin.ts) ---
+  // ============================================================
+  // Gestión de usuarios desde DynamoDB
+  // ============================================================
 
-  /**
-   * Setea la lista global de usuarios registrados en el sistema[cite: 6].
-   */
-  setUsuarios(usuarios: any[]): void {
-    this.usuarios = usuarios;
+  getUsuariosSistema(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.USUARIOS_API_URL}/usuarios`);
   }
 
-  getUsuarios(): any[] {
-    return this.usuarios;
-  }
-
-  /**
-   * Filtra usuarios por nombre o correo para administración (HU-04/09)[cite: 1, 6].
-   */
-  buscarUsuariosAD(termino: string): any[] {
-    if (!termino) return this.usuarios;
-    const t = termino.toLowerCase();
-    return this.usuarios.filter(u => 
-      u.nombre?.toLowerCase().includes(t) || u.correo?.toLowerCase().includes(t)
+  buscarUsuariosAD(termino: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.USUARIOS_API_URL}/usuarios?buscar=${encodeURIComponent(termino)}`
     );
   }
 
-  /**
-   * Simula la asignación de roles y registra la acción en auditoría (HU-09)[cite: 1, 6].
-   */
-  asignarRolUsuarioAD(usuario: any, rol: string): void {
-    console.log(`Asignando rol ${rol} a ${usuario.nombre}`);
-    this.auditLog.push({
-      evento: 'Cambio de Rol',
-      usuario: usuario.correo,
-      detalle: `Nuevo rol: ${rol}`,
-      fecha: new Date().toISOString()
-    });
+  asignarRolUsuarioAD(usuario: any, rol: string): Observable<any> {
+    const body = {
+      correo: usuario.correo,
+      rol: rol
+    };
+
+    return this.http.post<any>(`${this.USUARIOS_API_URL}/usuarios`, body);
   }
 
-  // --- Catálogos y Auditoría ---
+  actualizarRolUsuario(correo: string, rol: string): Observable<any> {
+    const body = {
+      rol: rol
+    };
+
+    return this.http.put<any>(
+      `${this.USUARIOS_API_URL}/usuarios/${encodeURIComponent(correo)}/rol`,
+      body
+    );
+  }
+
+  eliminarAccesoUsuario(correo: string): Observable<any> {
+    return this.http.delete<any>(
+      `${this.USUARIOS_API_URL}/usuarios/${encodeURIComponent(correo)}`
+    );
+  }
+
+  // ============================================================
+  // EPP
+  // ============================================================
 
   setEppCatalog(catalog: any[]): void {
     this.eppCatalog = catalog;
+    sessionStorage.setItem('sc_epp', JSON.stringify(catalog));
   }
 
   getEppCatalog(): any[] {
-    if (this.eppCatalog.length === 0) {
-      const stored = sessionStorage.getItem("sc_epp");
-      return stored ? JSON.parse(stored) : [];
+    if (this.eppCatalog.length > 0) {
+      return this.eppCatalog;
     }
-    return this.eppCatalog;
+
+    const stored = sessionStorage.getItem('sc_epp');
+    return stored ? JSON.parse(stored) : [];
   }
 
-  getAuditLog(): any[] { return this.auditLog; }
-  setAuditLog(log: any[]): void { this.auditLog = log; }
+  // ============================================================
+  // Auditoría
+  // ============================================================
 
-  // --- Control de Interfaz y Políticas ---
+  getAuditLog(): any[] {
+    return this.auditLog;
+  }
 
-  getViewMode(): string { return this.viewMode; }
-  setViewMode(mode: string): void { this.viewMode = mode; }
+  setAuditLog(log: any[]): void {
+    this.auditLog = log;
+  }
 
-  getPolicies(): any[] { return this.policies; }
-  setPolicies(policies: any[]): void { this.policies = policies; }
+  // ============================================================
+  // Vista / modo
+  // ============================================================
+
+  getViewMode(): string {
+    return this.viewMode;
+  }
+
+  setViewMode(mode: string): void {
+    this.viewMode = mode;
+  }
+
+  // ============================================================
+  // Políticas
+  // ============================================================
+
+  getPolicies(): any {
+    return this.policies;
+  }
+
+  setPolicies(policies: any): void {
+    this.policies = policies;
+  }
 }
