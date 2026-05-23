@@ -1,1 +1,192 @@
-<h1>Reportes</h1>
+<main class="main-content">
+  <section class="reportes-header">
+    <h1>Reportes</h1>
+    <p>Métricas y análisis de uso de salas y visitantes</p>
+  </section>
+
+  <section class="filters-card reportes-filters">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Periodo</label>
+        <select
+          [(ngModel)]="periodoSeleccionado"
+          (change)="renderReportes()"
+        >
+          @for (periodo of periodos; track periodo.valor) {
+            <option [value]="periodo.valor">
+              {{ periodo.texto }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Sede</label>
+        <select
+          [(ngModel)]="sedeSeleccionada"
+          (change)="renderReportes()"
+        >
+          <option value="todas">Todas las sedes</option>
+          <option value="oficinas">Oficinas</option>
+          <option value="almacen">Almacén</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Tipo</label>
+        <select
+          [(ngModel)]="tipoSeleccionado"
+          (change)="renderReportes()"
+        >
+          <option value="todas">Todas las salas</option>
+          <option value="premium">Premium</option>
+          <option value="regular">Regular</option>
+          <option value="phonebooth">Phone Booth</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  @if (cargando) {
+    <div class="empty-reportes">
+      Cargando reportes...
+    </div>
+  }
+
+  @if (!cargando) {
+    <section class="reportes-kpis">
+      @for (kpi of kpis; track kpi.label) {
+        <article class="kpi-card" [ngClass]="kpi.color">
+          <div class="kpi-top">
+            <div class="kpi-icon" [ngClass]="kpi.color">
+              <i [attr.data-lucide]="kpi.icon"></i>
+            </div>
+
+            <span
+              class="kpi-trend"
+              [ngClass]="esTendenciaPositiva(kpi.trend) ? 'up' : 'down'"
+            >
+              <i data-lucide="trending-up"></i>
+              {{ kpi.trend }}
+            </span>
+          </div>
+
+          <div class="kpi-value">
+            {{ kpi.value }}
+          </div>
+
+          <div class="kpi-label">
+            {{ kpi.label }}
+          </div>
+        </article>
+      }
+    </section>
+
+    <section class="reportes-charts">
+      <article class="chart-card">
+        <h2>Ocupación por sala</h2>
+        <p>{{ subtituloOcupacion }}</p>
+
+        @if (ocupacionPorSala.length === 0) {
+          <div class="empty-reportes chart-empty">
+            No hay reservas para calcular ocupación con los filtros seleccionados.
+          </div>
+        }
+
+        @if (ocupacionPorSala.length > 0) {
+          <div class="bar-chart">
+            @for (item of ocupacionPorSala; track item.nombreCompleto) {
+              <div class="bar-row">
+                <div class="bar-label">
+                  {{ item.sala }}
+                </div>
+
+                <div class="bar-track">
+                  <div
+                    class="bar-fill"
+                    [style.width.%]="item.porcentaje"
+                  ></div>
+                </div>
+
+                <div class="bar-value">
+                  {{ item.porcentaje }}%
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </article>
+
+      <article class="chart-card">
+        <h2>Tipos de visitante</h2>
+        <p>{{ subtituloVisitantes }}</p>
+
+        <div class="donut-wrapper">
+          <div
+            class="donut-chart"
+            [style.background]="donutStyle"
+          >
+            <div class="donut-hole">
+              <div class="donut-center-value">
+                {{ visitantes.total }}
+              </div>
+              <div class="donut-center-label">
+                Total
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="custom-legend">
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-dot corporativo"></div>
+              <span class="legend-name">Corporativo</span>
+            </div>
+
+            <span class="legend-value">
+              {{ visitantes.corporativo }}
+              ({{ getPorcentajeVisitante(visitantes.corporativo) }}%)
+            </span>
+          </div>
+
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-dot cliente"></div>
+              <span class="legend-name">Cliente</span>
+            </div>
+
+            <span class="legend-value">
+              {{ visitantes.cliente }}
+              ({{ getPorcentajeVisitante(visitantes.cliente) }}%)
+            </span>
+          </div>
+
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-dot proveedor"></div>
+              <span class="legend-name">Proveedor</span>
+            </div>
+
+            <span class="legend-value">
+              {{ visitantes.proveedor }}
+              ({{ getPorcentajeVisitante(visitantes.proveedor) }}%)
+            </span>
+          </div>
+
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-dot externo"></div>
+              <span class="legend-name">Corporativo externo</span>
+            </div>
+
+            <span class="legend-value">
+              {{ visitantes.externo }}
+              ({{ getPorcentajeVisitante(visitantes.externo) }}%)
+            </span>
+          </div>
+        </div>
+      </article>
+    </section>
+  }
+</main>
