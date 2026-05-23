@@ -1,74 +1,171 @@
-<div class="app-layout">
-  <div class="main-wrapper">
-    <main class="main-content">
+<main class="main-content">
+  <section class="dashboard-header">
+    <h1>Bienvenid@, {{ user?.nombre || 'Usuario' }}</h1>
+    <p>Vista consolidada de tus reuniones y recursos</p>
+  </section>
 
-      <!-- Saludo personalizado usando el usuario de SessionService -->
-      <section class="dashboard-header">
-        <h1>Bienvenid@ {{ user?.nombre }}</h1>
-        <p>Vista consolidada de tus reuniones y recursos (AWS Cloud Sync)</p>
-      </section>
+  @if (cargando) {
+    <div class="empty-dashboard">
+      Cargando información del inicio...
+    </div>
+  }
 
-      <!-- Tarjetas de estadísticas dinámicas (HU-10) -->
-      <section class="stats-grid">
-        <div class="stat-card" *ngFor="let stat of stats">
-          <div class="stat-icon">{{ stat.icon }}</div>
+  @if (!cargando) {
+    <section class="stats-grid">
+      @for (stat of stats; track stat.label) {
+        <article class="stat-card">
+          <div class="stat-icon">
+            <i [attr.data-lucide]="stat.icon"></i>
+          </div>
+
           <div>
-            <h2>{{ stat.value }}</h2>
+            <h3>{{ stat.value }}</h3>
             <p>{{ stat.label }}</p>
           </div>
-        </div>
-      </section>
+        </article>
+      }
+    </section>
 
-      <!-- Listado de reuniones recuperadas de la tabla bdreuniones[cite: 7] -->
-      <section class="dashboard-section">
+    <section class="dashboard-section">
+      <div class="section-title">
+        <i data-lucide="calendar"></i>
+        <h2>Reuniones Futuras</h2>
+      </div>
+
+      @if (reunionesFuturas.length === 0) {
+        <div class="empty-dashboard">
+          No tienes reuniones futuras registradas.
+        </div>
+      }
+
+      @if (reunionesFuturas.length > 0) {
+        <div class="meeting-list">
+          @for (reunion of reunionesFuturas; track reunion.id_reserva) {
+            <article class="meeting-card">
+              <div class="meeting-info">
+                <h3>{{ reunion.titulo }}</h3>
+
+                <div class="meeting-meta">
+                  <span>
+                    <i data-lucide="calendar"></i>
+                    {{ reunion.fecha }}
+                  </span>
+
+                  <span>
+                    <i data-lucide="clock"></i>
+                    {{ reunion.hora }}
+                  </span>
+
+                  <span>
+                    <i data-lucide="map-pin"></i>
+                    {{ reunion.lugar }}
+                  </span>
+                </div>
+
+                @if (reunion.externos) {
+                  <div class="meeting-extra">
+                    <span>
+                      <i data-lucide="user"></i>
+                      {{ reunion.cantidadExternos }} visitante(s) externo(s)
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <div class="actions-inline">
+                <span class="badge" [ngClass]="getEstadoClase(reunion)">
+                  {{ getEstadoTexto(reunion) }}
+                </span>
+
+                @if (reunion.epp) {
+                  <span class="badge badge-info">
+                    EPP
+                  </span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="bottom-grid">
+      <div class="dashboard-section">
         <div class="section-title">
-          <h2>Reuniones Futuras</h2>
+          <i data-lucide="clock"></i>
+          <h2>Reuniones Pasadas</h2>
         </div>
 
-        <div *ngIf="reunionesFuturas.length === 0" class="no-data-msg">
-          <p>No hay reuniones programadas en DynamoDB.</p>
-        </div>
-
-        <div class="meeting-card" *ngFor="let reunion of reunionesFuturas">
-          <div>
-            <h3>{{ reunion.titulo }}</h3>
-            <p>{{ reunion.fecha }} | {{ reunion.hora }} | {{ reunion.lugar }}</p>
-            <p *ngIf="reunion.externos">Incluye visitantes externos</p>
+        @if (reunionesPasadas.length === 0) {
+          <div class="empty-dashboard small">
+            No tienes reuniones pasadas registradas.
           </div>
-          <div>
-            <span class="badge confirmada" *ngIf="reunion.estado === 'confirmada'">Confirmada</span>
-            <span class="badge epp" *ngIf="reunion.epp">EPP Requerido</span>
-          </div>
-        </div>
-      </section>
+        }
 
-      <section class="bottom-grid">
-        <!-- Historial de reuniones (Trazabilidad HU-09)[cite: 1, 7] -->
-        <div class="dashboard-section">
-          <div class="section-title"><h2>Reuniones Pasadas</h2></div>
-          <div class="history-card" *ngFor="let reunion of reunionesPasadas">
-            <div>
-              <h3>{{ reunion.titulo }}</h3>
-              <p>{{ reunion.fecha }} | {{ reunion.lugar }}</p>
-            </div>
-            <button>↻ Repetir</button>
+        @if (reunionesPasadas.length > 0) {
+          <div class="history-list">
+            @for (reunion of reunionesPasadas; track reunion.id_reserva) {
+              <article class="history-card">
+                <div>
+                  <h3>{{ reunion.titulo }}</h3>
+                  <p>{{ reunion.fecha }} · {{ reunion.hora }} · {{ reunion.lugar }}</p>
+
+                  @if (reunion.invitadosInternos.length > 0) {
+                    <small>
+                      {{ reunion.invitadosInternos.length }} invitado(s) interno(s)
+                    </small>
+                  } @else {
+                    <small>
+                      Sin invitados internos registrados
+                    </small>
+                  }
+                </div>
+
+                <button
+                  class="btn-secondary"
+                  type="button"
+                  (click)="repetirReserva(reunion)"
+                >
+                  <i data-lucide="rotate-ccw"></i>
+                  Repetir
+                </button>
+              </article>
+            }
           </div>
+        }
+      </div>
+
+      <div class="dashboard-section">
+        <div class="section-title">
+          <i data-lucide="hard-hat"></i>
+          <h2>Estado de EPP</h2>
         </div>
 
-        <!-- Inventario de EPP sincronizado con la tabla bdepp (HU-06)[cite: 1, 7] -->
-        <div class="dashboard-section">
-          <div class="section-title"><h2>Estado de Inventario EPP</h2></div>
-          <div class="epp-card" *ngFor="let epp of listaEpp">
-            <span class="dot" [ngClass]="epp.color"></span>
-            <div>
-              <h3>{{ epp.nombre }}</h3>
-              <p>{{ epp.detalle }}</p>
-            </div>
-            <small>{{ epp.estado }}</small>
+        @if (listaEpp.length === 0) {
+          <div class="empty-dashboard small">
+            No tienes reservas con EPP registradas.
           </div>
-        </div>
-      </section>
+        }
 
-    </main>
-  </div>
-</div>
+        @if (listaEpp.length > 0) {
+          <div class="epp-list">
+            @for (epp of listaEpp; track $index) {
+              <article class="epp-card">
+                <div class="epp-dot" [ngClass]="epp.color"></div>
+
+                <div class="epp-info">
+                  <h3>{{ epp.nombre }}</h3>
+                  <p>{{ epp.detalle }}</p>
+                </div>
+
+                <span class="epp-status">
+                  {{ epp.estado }}
+                </span>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+</main>
