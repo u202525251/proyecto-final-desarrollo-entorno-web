@@ -8,6 +8,7 @@ import { Recepcion } from './recepcion/recepcion';
 import { Reportes } from './reportes/reportes';
 import { Admin } from './admin/admin';
 import { Perfil } from './perfil/perfil';
+import { ReservaDetalle } from './reserva-detalle/reserva-detalle';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -19,6 +20,7 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: Dashboard },
       { path: 'reservas', component: Reservas },
+      { path: 'reserva-detalle', component: ReservaDetalle },
       { path: 'mis-reuniones', component: MisReuniones },
       { path: 'recepcion', component: Recepcion },
       { path: 'reportes', component: Reportes },

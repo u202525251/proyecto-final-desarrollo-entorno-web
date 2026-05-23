@@ -8,19 +8,24 @@ import { Router } from '@angular/router';
 })
 export class SessionService {
   // API Gateway para login y gestión de usuarios
-  private readonly USUARIOS_API_URL = 'https://u410rk5wc9.execute-api.us-east-1.amazonaws.com/';
+  private readonly USUARIOS_API_URL = 'https://u410rk5wc9.execute-api.us-east-1.amazonaws.com';
 
-  // Endpoint de lectura para cargar configuración inicial: salas, EPP y reuniones
+  // API Gateway para salas y reservas
+  private readonly RESERVAS_API_URL = 'https://uhftcvykw6.execute-api.us-east-1.amazonaws.com';
+
+  // Endpoint anterior de lectura general (Javier)
   private readonly GET_DATA_URL = 'https://du7n8szqs8.execute-api.us-east-1.amazonaws.com/default/obtenerDatosIniciales';
 
-  // Endpoint de escritura para crear reuniones
+  // Endpoint anterior de creación de reunión (Javier)
   private readonly POST_REUNION_URL = 'https://ke0ytyb0p0.execute-api.us-east-1.amazonaws.com/default/crearReunion';
 
   private viewMode: string = 'admin';
+
   private policies: any = {
     maxDuracionHoras: 4,
     maxRepeticionMeses: 3
   };
+
   private eppCatalog: any[] = [];
   private auditLog: any[] = [];
 
@@ -42,7 +47,7 @@ export class SessionService {
 
         this.setEppCatalog(res.epp || []);
 
-        console.log('Sincronización con DynamoDB completada.');
+        console.log('Sincronización inicial completada.');
       },
       error: (err) => {
         console.error('Fallo en la conexión con AWS:', err);
@@ -128,6 +133,41 @@ export class SessionService {
   eliminarAccesoUsuario(correo: string): Observable<any> {
     return this.http.delete<any>(
       `${this.USUARIOS_API_URL}/usuarios/${encodeURIComponent(correo)}`
+    );
+  }
+
+  // ============================================================
+  // Salas y reservas desde nueva API
+  // ============================================================
+
+  getSalas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.RESERVAS_API_URL}/salas`);
+  }
+
+  getTodasLasReservas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.RESERVAS_API_URL}/reservas`);
+  }
+
+  getMisReservas(correo: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.RESERVAS_API_URL}/reservas?correo=${encodeURIComponent(correo)}`
+    );
+  }
+
+  crearReservaApi(reserva: any): Observable<any> {
+    return this.http.post<any>(`${this.RESERVAS_API_URL}/reservas`, reserva);
+  }
+
+  actualizarReservaApi(idReserva: string, reserva: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.RESERVAS_API_URL}/reservas/${encodeURIComponent(idReserva)}`,
+      reserva
+    );
+  }
+
+  eliminarReservaApi(idReserva: string): Observable<any> {
+    return this.http.delete<any>(
+      `${this.RESERVAS_API_URL}/reservas/${encodeURIComponent(idReserva)}`
     );
   }
 

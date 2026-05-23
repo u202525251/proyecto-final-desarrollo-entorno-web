@@ -1,0 +1,39 @@
+.externo-grid {
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 12px;
+}
+
+.form-group select {
+  height: 44px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.acciones-invitado-externo {
+  margin: 12px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-agregar-externo {
+  background: #4B2D82;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-agregar-externo:hover {
+  background: #3d2468;
+}
+
+@media (max-width: 900px) {
+  .externo-grid {
+    grid-template-columns: 1fr;
+  }
+}

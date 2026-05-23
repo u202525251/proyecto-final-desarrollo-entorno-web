@@ -1,142 +1,283 @@
-    .reservas-container {
-    padding: 40px;
-    }
+.reservas-container {
+  padding: 40px;
+}
 
-    .reservas-container h1 {
-    margin-bottom: 24px;
-    color: #1f1f3d;
-    }
+.reservas-container h1 {
+  margin-bottom: 24px;
+  color: #1f1f3d;
+}
 
-    .filters-card {
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 24px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 18px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    margin-bottom: 22px;
-    }
+.filters-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  margin-bottom: 22px;
+  overflow: visible;
+}
 
-    .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    }
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-    .filter-group label {
-    font-weight: 700;
-    font-size: 14px;
-    }
+.filter-group label {
+  font-weight: 700;
+  font-size: 14px;
+  color: #33304f;
+}
 
-    .filter-group select,
-    .filter-group input {
-    height: 44px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 0 12px;
-    }
+.filter-group select,
+.filter-group input {
+  height: 44px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #ffffff;
+  color: #33304f;
+  font-size: 14px;
+}
 
-    .clear-btn {
-    background: transparent;
-    border: none;
-    color: #4b2383;
-    font-weight: 700;
-    cursor: pointer;
-    text-align: left;
-    }
+.filter-actions {
+  display: flex;
+  align-items: end;
+}
 
-    .result-count {
-    color: #6f6a8a;
-    margin-bottom: 16px;
-    }
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: #4b2383;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
 
-    .rooms-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-    }
+.result-count {
+  color: #6f6a8a;
+  margin-bottom: 16px;
+}
 
-    .room-card {
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 22px;
-    min-height: 210px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    }
+.empty-state {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 30px;
+  color: #6f6a8a;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
 
-    .room-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    }
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
 
-    .room-header h3 {
-    margin: 0 0 6px;
-    color: #1f1f3d;
-    }
+.room-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  min-height: 260px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 
-    .room-header p,
-    .capacity {
-    margin: 0 0 12px;
-    color: #6f6a8a;
-    }
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
-    .status {
-    height: fit-content;
-    padding: 7px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    }
+.room-content {
+  display: flex;
+  flex-direction: column;
+}
 
-    .enabled {
-    background: #dff9f7;
-    color: #009688;
-    }
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
 
-    .disabled {
-    background: #ffe3e3;
-    color: #d93636;
-    }
+.room-header h3 {
+  margin: 0 0 6px;
+  color: #1f1f3d;
+}
 
-    .equipment-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-    }
+.room-header p,
+.capacity {
+  margin: 0 0 12px;
+  color: #6f6a8a;
+}
 
-    .equipment-list span {
-    background: #f0eff6;
-    color: #33304f;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    }
+.capacity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .reserve-btn {
-    float: right;
-    background: #5b2fa0;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    }
+.capacity i {
+  width: 18px;
+  height: 18px;
+}
 
-    .reserve-btn:disabled {
-    background: #b79ad8;
-    cursor: not-allowed;
-    }
+.status {
+  height: fit-content;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 
-    @media (max-width: 1100px) {
-    .filters-card {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.enabled {
+  background: #dff9f7;
+  color: #009688;
+}
 
-    .rooms-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    }
+.disabled {
+  background: #ffe3e3;
+  color: #d93636;
+}
+
+.equipment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.equipment-list span {
+  background: #f0eff6;
+  color: #33304f;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.room-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reserve-btn {
+  background: #5b2fa0;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 130px;
+}
+
+.reserve-btn:disabled {
+  background: #b79ad8;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Combo de equipamiento tipo dropdown con checkboxes
+   ============================================================ */
+
+.equipment-filter {
+  position: relative;
+}
+
+.equipment-combo {
+  position: relative;
+  width: 100%;
+}
+
+.equipment-combo-button {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #33304f;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.equipment-combo-button span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.equipment-combo-button i {
+  width: 18px;
+  height: 18px;
+}
+
+.equipment-dropdown {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  z-index: 999;
+  padding: 8px 0;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+}
+
+.equipment-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #33304f;
+  cursor: pointer;
+  font-weight: 400 !important;
+}
+
+.equipment-option:hover {
+  background: #f5f3fb;
+}
+
+.equipment-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: #5b2fa0;
+  cursor: pointer;
+}
+
+.equipment-option span {
+  line-height: 1;
+}
+
+@media (max-width: 1100px) {
+  .filters-card {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rooms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .reservas-container {
+    padding: 20px;
+  }
+
+  .filters-card {
+    grid-template-columns: 1fr;
+  }
+
+  .rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}

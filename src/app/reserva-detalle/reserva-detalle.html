@@ -1,0 +1,387 @@
+<div class="reserva-detalle-container">
+  <button class="back-link" type="button" (click)="volver()">
+    <i data-lucide="chevron-left"></i>
+    Volver
+  </button>
+
+  <h1>
+    @if (reserva.modoEdicion) {
+      Editar reserva: {{ reserva.sala || 'Sala' }}
+    } @else {
+      Reservar: {{ reserva.sala || 'Sala' }}
+    }
+  </h1>
+
+  <p class="detalle-modo">
+    @if (reserva.modoEdicion) {
+      Actualiza los datos de la reunión y guarda los cambios.
+    } @else {
+      Completa los datos de la reunión y valida la disponibilidad antes de guardar.
+    }
+  </p>
+
+  <section class="detalle-card">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nombre de reunión</label>
+        <input
+          type="text"
+          placeholder="Ej. Comité de seguridad mensual"
+          [(ngModel)]="tituloReunion"
+          (input)="guardarBorrador()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Fecha</label>
+        <input
+          type="date"
+          [(ngModel)]="fecha"
+          (change)="validarDisponibilidad()"
+          (input)="validarDisponibilidad()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Hora inicio</label>
+        <input
+          type="time"
+          [(ngModel)]="horaInicio"
+          (change)="validarDisponibilidad()"
+          (input)="validarDisponibilidad()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Hora fin</label>
+        <input
+          type="time"
+          [(ngModel)]="horaFin"
+          (change)="validarDisponibilidad()"
+          (input)="validarDisponibilidad()"
+        >
+      </div>
+    </div>
+
+    <div class="sala-resumen">
+      <div>
+        <strong>{{ reserva.sala }}</strong>
+        <p>
+          {{ reserva.ubicacion || 'Ubicación no registrada' }}
+          @if (reserva.sede) {
+            · {{ reserva.sede }}
+          }
+        </p>
+      </div>
+
+      <span>
+        <i data-lucide="users"></i>
+        {{ reserva.capacidad || 'N/D' }} personas
+      </span>
+    </div>
+
+    <div class="participant-section">
+      <div class="participant-section-title">
+        <i data-lucide="user-round"></i>
+        Organizador
+      </div>
+
+      <div class="participant-selected-list">
+        <div class="participant-chip participant-chip-organizador">
+          <div>
+            <strong>{{ usuario?.nombre || 'Usuario' }}</strong>
+            <div class="participant-chip-meta">
+              {{ usuario?.correo || 'Sin correo' }} · {{ usuario?.cargo || 'Colaborador' }}
+            </div>
+          </div>
+
+          <span class="participant-type-badge role-organizador">
+            Organizador
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="participant-section">
+      <div class="participant-section-title">
+        <i data-lucide="users"></i>
+        Invitados internos
+      </div>
+
+      <p class="participant-section-sub">
+        Busca colaboradores en el directorio corporativo y agrégalos a la reunión.
+      </p>
+
+      <div class="participant-search-wrap">
+        <div class="participant-search-meta">
+          Directorio corporativo simulado
+        </div>
+
+        <input
+          type="text"
+          class="participant-search"
+          placeholder="Buscar colaborador por nombre, correo o cargo"
+          autocomplete="off"
+          [(ngModel)]="busquedaInterno"
+          (input)="buscarInternos()"
+          (focus)="buscarInternos()"
+        >
+
+        @if (buscandoInternos) {
+          <div class="participant-search-loading">
+            Buscando en directorio...
+          </div>
+        }
+
+        @if (resultadosInternos.length > 0) {
+          <div class="participant-search-results">
+            @for (item of resultadosInternos; track item.correo) {
+              <button
+                type="button"
+                class="participant-option"
+                (click)="agregarInterno(item)"
+              >
+                <div>
+                  <strong>{{ item.nombre }}</strong>
+                  <div class="participant-option-meta">
+                    {{ item.cargo || 'Colaborador' }} · {{ item.correo }}
+                  </div>
+                  <div class="participant-option-meta">
+                    {{ item.sede || 'Sede no registrada' }}
+                  </div>
+                </div>
+
+                <span class="participant-type-badge role-interno">
+                  AD
+                </span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="participant-selected-list">
+        @if (invitadosInternos.length === 0) {
+          <div class="participant-empty">
+            No has agregado invitados internos todavía.
+          </div>
+        }
+
+        @for (item of invitadosInternos; track item.correo) {
+          <div class="participant-chip participant-chip-interno participant-chip-detailed">
+            <div>
+              <strong>{{ item.nombre }}</strong>
+              <div class="participant-chip-meta">
+                {{ item.correo }} · {{ item.cargo || 'Colaborador' }}
+              </div>
+            </div>
+
+            <div class="participant-chip-actions">
+              <span class="participant-type-badge role-interno">
+                Interno corporativo
+              </span>
+
+              <button
+                type="button"
+                class="participant-remove"
+                (click)="quitarInterno(item.correo)"
+              >
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="guest-toggle-card">
+      <label class="guest-toggle-label">
+        <input
+          type="checkbox"
+          [(ngModel)]="conInvitadosExternos"
+          (change)="sincronizarInvitadosExternos()"
+        >
+
+        <div>
+          <strong>Incluir invitados externos</strong>
+          <div class="guest-toggle-helper">
+            Activa esta opción si asistirán clientes, proveedores o visitantes externos.
+          </div>
+        </div>
+      </label>
+    </div>
+
+    @if (conInvitadosExternos) {
+      <div class="participant-section">
+        <div class="participant-section-title">
+          <i data-lucide="user-plus"></i>
+          Invitados externos
+        </div>
+
+        <p class="participant-section-sub">
+          Registra los datos básicos de cada visitante externo.
+        </p>
+
+        <div class="form-grid externo-grid">
+          <div class="form-group">
+            <label>Nombre completo</label>
+            <input
+              type="text"
+              placeholder="Ej. Juan Pérez"
+              [(ngModel)]="externoNombre"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Documento</label>
+            <input
+              type="text"
+              placeholder="DNI / CE / Pasaporte"
+              [(ngModel)]="externoDocumento"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Empresa</label>
+            <input
+              type="text"
+              placeholder="Empresa / Institución"
+              [(ngModel)]="externoEmpresa"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Tipo</label>
+            <select [(ngModel)]="externoTipo">
+              <option value="cliente">Cliente</option>
+              <option value="proveedor">Proveedor</option>
+              <option value="externo">Corporativo externo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="acciones-invitado-externo">
+          <button
+            type="button"
+            class="btn-agregar-externo"
+            (click)="agregarExterno()"
+          >
+            Agregar invitado externo
+          </button>
+        </div>
+
+        <div class="participant-selected-list">
+          @if (invitadosExternos.length === 0) {
+            <div class="participant-empty">
+              No has agregado invitados externos todavía.
+            </div>
+          }
+
+          @for (item of invitadosExternos; track $index) {
+            <div class="participant-chip participant-chip-detailed">
+              <div>
+                <strong>{{ item.nombre }}</strong>
+                <div class="participant-chip-meta">
+                  {{ item.documento || 'Sin documento' }} · {{ item.empresa || 'Sin empresa' }}
+                </div>
+              </div>
+
+              <div class="participant-chip-actions">
+                <span class="participant-type-badge role-interno">
+                  {{ item.tipo }}
+                </span>
+
+                <button
+                  type="button"
+                  class="participant-remove"
+                  (click)="quitarExterno($index)"
+                >
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (reserva.epp === true || reserva.sedeKey === 'almacen') {
+      <div class="epp-info">
+        <div class="epp-info-title">
+          <i data-lucide="hard-hat"></i>
+          EPP requerido
+        </div>
+
+        <p>
+          Esta reserva pertenece a almacén, por lo que se marcará como reserva con EPP pendiente de recojo.
+        </p>
+      </div>
+    }
+
+    <div
+      class="estado-box"
+      [class.estado-disponible]="estadoDisponibilidad === 'disponible'"
+      [class.estado-conflicto]="estadoDisponibilidad !== 'disponible'"
+    >
+      <div class="estado-header">
+        @if (estadoDisponibilidad === 'disponible') {
+          <i data-lucide="circle-check"></i>
+          <strong>Disponible</strong>
+        } @else {
+          <i data-lucide="triangle-alert"></i>
+          <strong>Conflicto detectado</strong>
+        }
+      </div>
+
+      <div class="estado-content">
+        <p>{{ mensajeDisponibilidad }}</p>
+
+        @if (conflictos.length > 0) {
+          <p>
+            <strong>Rango que genera conflicto:</strong>
+            @for (c of conflictos; track c.id_reserva) {
+              <span>{{ c.hora }}</span>
+            }
+          </p>
+
+          <p>
+            <strong>Horarios alternativos:</strong>
+            @for (rango of horariosAlternativos; track rango) {
+              <button
+                type="button"
+                class="btn-link-inline"
+                (click)="aplicarHorarioSugerido(rango)"
+              >
+                {{ rango }}
+              </button>
+            }
+          </p>
+
+          <p>
+            <strong>Salas equivalentes:</strong>
+            {{ salasEquivalentes.join(', ') }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="acciones-confirmacion">
+      <button
+        type="button"
+        class="btn-confirmar-main"
+        [disabled]="guardando"
+        (click)="guardarReserva()"
+      >
+        @if (guardando) {
+          Guardando...
+        } @else {
+          @if (reserva.modoEdicion) {
+            Guardar cambios
+          } @else {
+            Guardar reserva
+          }
+        }
+      </button>
+    </div>
+  </section>
+</div>

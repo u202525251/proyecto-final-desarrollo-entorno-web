@@ -1,191 +1,108 @@
-    .mis-reservas-container {
-    padding: 36px 40px;
-    color: #1f1f3d;
-    }
+.btn-delete {
+  color: #C94A4A;
+  border-color: rgba(224, 90, 90, 0.25);
+}
 
-    .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    }
+.btn-delete:hover {
+  background: rgba(224, 90, 90, 0.06);
+  border-color: rgba(224, 90, 90, 0.35);
+}
 
-    .page-header h1 {
-    font-size: 28px;
-    margin: 0;
-    }
+.modal-edicion-content {
+  background: #fff;
+  border: 1px solid #e8e8ee;
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 460px;
+  width: 92%;
+  position: relative;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+  animation: fadeInUp 0.3s ease-out;
+}
 
-    .filter-select {
-    width: 180px;
-    height: 42px;
-    border: 1px solid #dedce8;
-    border-radius: 12px;
-    padding: 0 14px;
-    background: #fff;
-    font-weight: 600;
-    color: #1f1f3d;
-    }
+.modal-edicion-content h2 {
+  color: #2d2d42;
+  font-size: 1.12rem;
+  margin-bottom: 18px;
+}
 
-    .reservation-card {
-    display: grid;
-    grid-template-columns: 1fr 145px;
-    gap: 20px;
-    background: #fff;
-    border-radius: 16px;
-    border-left: 4px solid #4b2383;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
-    padding: 20px;
-    margin-bottom: 14px;
-    }
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
-    .reservation-content h3 {
-    margin: 0 0 12px;
-    font-size: 17px;
-    }
+.edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
 
-    .reservation-content h3 span {
-    color: #4b2383;
-    }
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
 
-    .reservation-meta {
-    display: flex;
-    gap: 18px;
-    flex-wrap: wrap;
-    color: #6f6a8a;
-    margin-bottom: 12px;
-    }
+.edit-field label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2d2d42;
+}
 
-    .reservation-meta i {
-    margin-right: 6px;
-    }
+.edit-field input {
+  height: 42px;
+  border: 1px solid #e0e0ea;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #2d2d42;
+}
 
-    .badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
-    }
+.edit-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
 
-    .badge {
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    }
+.btn-cancelar {
+  border: 1px solid #e0e0ea;
+  background: #fff;
+  color: #555568;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-    .confirmada {
-    background: #dff9f7;
-    color: #009688;
-    }
+.btn-guardar-edicion {
+  border: none;
+  background: #4B2D82;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
 
-    .pendiente {
-    background: #fff0dc;
-    color: #d88618;
-    }
+.btn-guardar-edicion:disabled {
+  background: #b79ad8;
+  cursor: not-allowed;
+}
 
-    .checkin {
-    background: #eee7ff;
-    color: #4b2383;
-    }
+@media (max-width: 600px) {
+  .edit-row {
+    grid-template-columns: 1fr;
+  }
 
-    .interno {
-    background: #dff9f7;
-    color: #008a7a;
-    }
-
-    .externo {
-    background: #f0eff6;
-    color: #33304f;
-    }
-
-    .epp {
-    background: #fff0dc;
-    color: #d88618;
-    }
-
-    .participants {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    }
-
-    .participant {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    }
-
-    .participant small {
-    font-weight: 700;
-    padding: 3px 7px;
-    border-radius: 999px;
-    }
-
-    .organizador {
-    background: #eee7ff;
-    color: #4b2383;
-    }
-
-    .internoPersona {
-    background: #dff9f7;
-    color: #008a7a;
-    }
-
-    .proveedor {
-    background: #fff0dc;
-    color: #b97300;
-    }
-
-    .cliente {
-    background: #dff2e6;
-    color: #1f7a43;
-    }
-
-    .externoPersona {
-    background: #edf0f5;
-    color: #4d5565;
-    }
-
-    .reservation-actions {
-    display: flex;
+  .edit-actions {
     flex-direction: column;
-    gap: 8px;
-    }
+  }
 
-    .reservation-actions button {
-    height: 42px;
-    border-radius: 9px;
-    font-weight: 700;
-    cursor: pointer;
-    background: #fff;
-    }
-
-    .qr-btn {
-    border: 1px solid #b8ece8;
-    color: #009688;
-    }
-
-    .edit-btn {
-    border: 1px solid #e4dcef;
-    color: #4b2383;
-    }
-
-    .delete-btn {
-    border: 1px solid #ffd6d6;
-    color: #e53935;
-    font-size: 18px;
-    }
-
-    @media (max-width: 900px) {
-    .reservation-card {
-        grid-template-columns: 1fr;
-    }
-
-    .reservation-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-    }
+  .btn-cancelar,
+  .btn-guardar-edicion {
+    width: 100%;
+  }
+}

@@ -1,45 +1,161 @@
 <div class="reservas-container">
   <h1>Buscar y Reservar Sala</h1>
 
-  <!-- Formulario de Detalles -->
   <section class="filters-card">
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-      <div class="filter-group">
-        <label>Título de la Reunión</label>
-        <input type="text" [(ngModel)]="tituloReunion" placeholder="Ej: Comité de Riesgos">
-      </div>
-      <div class="filter-group">
-        <label>Fecha</label>
-        <input type="date" [(ngModel)]="fechaSeleccionada">
-      </div>
-      <div class="filter-group">
-        <label>Hora</label>
-        <input type="time" [(ngModel)]="horaSeleccionada">
-      </div>
-      <div class="filter-group" style="display: flex; align-items: center; gap: 10px; margin-top: 25px;">
-        <input type="checkbox" [(ngModel)]="requiereEPP" id="eppCheck">
-        <label for="eppCheck">¿Requiere EPP?</label>
+    <div class="filter-group">
+      <label>Sede</label>
+      <select
+        [(ngModel)]="sedeSeleccionada"
+        (change)="aplicarFiltros()"
+      >
+        <option value="todas">Todas</option>
+        <option value="oficinas">Oficinas</option>
+        <option value="almacen">Almacén</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Tipo de sala</label>
+      <select
+        [(ngModel)]="tipoSeleccionado"
+        (change)="aplicarFiltros()"
+      >
+        <option value="todas">Todas</option>
+        <option value="premium">Premium</option>
+        <option value="regular">Sala regular</option>
+        <option value="phonebooth">Phone booth</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Capacidad mínima: {{ capacidadMinima }}</label>
+      <input
+        type="range"
+        min="1"
+        max="20"
+        [(ngModel)]="capacidadMinima"
+        (input)="aplicarFiltros()"
+      >
+    </div>
+
+    <div class="filter-group equipment-filter">
+      <label>Equipamiento</label>
+
+      <div class="equipment-combo">
+        <button
+          type="button"
+          class="equipment-combo-button"
+          (click)="toggleComboEquipamiento()"
+        >
+          <span>{{ getTextoEquipamiento() }}</span>
+
+          <span class="equipment-arrow">
+            @if (comboEquipamientoAbierto) {
+              ▲
+            } @else {
+              ▼
+            }
+          </span>
+        </button>
+
+        @if (comboEquipamientoAbierto) {
+          <div class="equipment-dropdown">
+            <label class="equipment-option">
+              <input
+                type="checkbox"
+                [checked]="equipamientosSeleccionados.length === 0"
+                (change)="limpiarEquipamiento()"
+              >
+              <span>Todos</span>
+            </label>
+
+            @for (equipo of equipamientos; track equipo) {
+              <label class="equipment-option">
+                <input
+                  type="checkbox"
+                  [checked]="equipamientosSeleccionados.includes(equipo)"
+                  (change)="toggleEquipamiento(equipo)"
+                >
+                <span>{{ equipo }}</span>
+              </label>
+            }
+          </div>
+        }
       </div>
     </div>
-  </section>
 
-  <!-- Grid de Salas (Sincronizado con la imagen de DynamoDB)[cite: 3] -->
-  <section class="rooms-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
-    <div class="room-card" *ngFor="let sala of salasFiltradas" style="border: 1px solid #ddd; padding: 15px; border-radius: 12px; background: white;">
-      <!-- CAMBIO CLAVE: nombre_sala en lugar de nombre -->
-      <h3>{{ sala.nombre_sala }}</h3>
-      <p><strong>Ubicación:</strong> {{ sala.ubicacion }}</p>
-      <p><strong>Capacidad:</strong> {{ sala.capacidad }} personas</p>
-
-      <button 
-        class="reserve-btn"
-        style="width: 100%; margin-top: 15px; padding: 10px; border-radius: 8px; cursor: pointer;"
-        [disabled]="!tituloReunion || !fechaSeleccionada"
-        [style.background-color]="(tituloReunion && fechaSeleccionada) ? '#5b2fa0' : '#ccc'"
-        [style.color]="'white'"
-        (click)="reservarSala(sala)">
-        {{ (tituloReunion) ? 'Confirmar en ' + sala.nombre_sala : 'No disponible' }}
+    <div class="filter-actions">
+      <button
+        type="button"
+        class="clear-btn"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar filtros
       </button>
     </div>
   </section>
+
+  @if (cargando) {
+    <div class="empty-state">
+      Cargando salas disponibles...
+    </div>
+  }
+
+  @if (!cargando) {
+    <p class="result-count">
+      {{ salasFiltradas.length }} sala(s) encontrada(s)
+    </p>
+
+    <section class="rooms-grid">
+      @for (sala of salasFiltradas; track sala.id_sala) {
+        <article class="room-card">
+          <div class="room-content">
+            <div class="room-header">
+              <div>
+                <h3>{{ sala.nombre }}</h3>
+                <p>{{ sala.ubicacion }}</p>
+              </div>
+
+              @if (sala.estado === 'deshabilitada') {
+                <span class="status disabled">No disponible</span>
+              } @else {
+                <span class="status enabled">Disponible</span>
+              }
+            </div>
+
+            <p class="capacity">
+              <i data-lucide="users"></i>
+              {{ sala.capacidad }} personas
+            </p>
+
+            <div class="equipment-list">
+              @for (equipo of sala.equipamiento; track equipo) {
+                <span>{{ equipo }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="room-actions">
+            @if (sala.estado === 'deshabilitada') {
+              <button
+                type="button"
+                class="reserve-btn"
+                disabled
+              >
+                No disponible
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="reserve-btn"
+                (click)="seleccionarSala(sala)"
+              >
+                Reservar
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
 </div>

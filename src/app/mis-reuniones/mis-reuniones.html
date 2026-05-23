@@ -1,83 +1,192 @@
-    <section class="mis-reservas-container">
-    <div class="page-header">
-        <h1>Mis Reservas</h1>
-
-        <select [(ngModel)]="filtro" class="filter-select">
-        <option>Todas</option>
-        <option>Confirmada</option>
-        <option>Pendiente</option>
-        </select>
-    </div>
-
-    <div class="reservation-card" *ngFor="let reserva of reservasFiltradas">
-        <div class="reservation-content">
-        <h3>
-            {{ reserva.titulo }}
-            <span>• {{ reserva.sala }}</span>
-        </h3>
-
-        <div class="reservation-meta">
-            <span><i class="fa-regular fa-calendar"></i> {{ reserva.fecha }}</span>
-            <span><i class="fa-regular fa-clock"></i> {{ reserva.hora }}</span>
-            <span><i class="fa-solid fa-location-dot"></i> {{ reserva.sala }}</span>
-        </div>
-
-        <div class="badges">
-            <span class="badge confirmada" *ngIf="reserva.estado === 'Confirmada'">
-            <i class="fa-solid fa-check"></i> Confirmada
-            </span>
-
-            <span class="badge pendiente" *ngIf="reserva.estado === 'Pendiente'">
-            <i class="fa-regular fa-clock"></i> Pendiente
-            </span>
-
-            <span class="badge checkin" *ngIf="reserva.checkin">
-            {{ reserva.checkin }}
-            </span>
-
-            <span class="badge interno">
-            <i class="fa-solid fa-building"></i> {{ reserva.internos }} interno(s)
-            </span>
-
-            <span class="badge externo">
-            <i class="fa-regular fa-user"></i> {{ reserva.externos }} externo(s)
-            </span>
-
-            <span class="badge epp" *ngIf="reserva.epp">
-            <i class="fa-solid fa-helmet-safety"></i> {{ reserva.epp }}
-            </span>
-        </div>
-
-        <div class="participants">
-            <span
-            class="participant"
-            *ngFor="let persona of reserva.participantes"
-            [ngClass]="{
-                organizador: persona.tipo === 'Organizador',
-                internoPersona: persona.tipo === 'Interno corporativo',
-                proveedor: persona.tipo === 'Proveedor',
-                cliente: persona.tipo === 'Cliente',
-                externoPersona: persona.tipo === 'Corporativo externo'
-            }"
-            >
-            {{ persona.nombre }}
-            <small>{{ persona.tipo }}</small>
-            </span>
-        </div>
-        </div>
-
-        <div class="reservation-actions">
-        <button class="qr-btn" *ngIf="reserva.qr" (click)="mostrarQR(reserva)">
-            <i class="fa-solid fa-qrcode"></i> Mostrar QR
-        </button>
-
-        <button class="edit-btn" (click)="editarReserva(reserva)">
-            <i class="fa-solid fa-pen"></i> Editar
-        </button>
-
-        <button class="delete-btn" (click)="eliminarReserva(reserva)">
-            <i class="fa-solid fa-trash-can"></i>
-        </button>
-        </div>
-    </div>
+<div class="mis-reuniones-container">
+  <div class="reuniones-topbar">
+    <section class="reuniones-header">
+      <h1>Mis Reservas</h1>
     </section>
+
+    <div class="filtro-select-wrap">
+      <i data-lucide="filter" class="filtro-icon"></i>
+
+      <select
+        class="filtro-select"
+        [(ngModel)]="filtro"
+        (change)="cambiarFiltro()"
+      >
+        <option value="todas">Todas</option>
+        <option value="futuras">Futuras</option>
+        <option value="pasadas">Pasadas</option>
+        <option value="externos">Con visitantes</option>
+        <option value="epp">Con EPP</option>
+      </select>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <div class="empty-state">
+      Cargando reuniones agendadas...
+    </div>
+  }
+
+  @if (!cargando && reservasFiltradas.length === 0) {
+    <div class="empty-state">
+      No se encontraron reuniones con ese filtro.
+    </div>
+  }
+
+  @if (!cargando && reservasFiltradas.length > 0) {
+    <div id="reuniones-list">
+      @for (reserva of reservasFiltradas; track reserva.id_reserva) {
+        <article class="reunion-card">
+          <div class="reunion-card-left">
+            <h3 class="reunion-title-strong">
+              {{ reserva.titulo }}
+              <span class="reunion-sala-highlight">
+                · {{ reserva.lugar }}
+              </span>
+            </h3>
+
+            <div class="reunion-meta">
+              <span>
+                <i data-lucide="calendar"></i>
+                {{ reserva.fecha }}
+              </span>
+
+              <span>
+                <i data-lucide="clock"></i>
+                {{ reserva.hora }}
+              </span>
+
+              <span>
+                <i data-lucide="map-pin"></i>
+                {{ reserva.lugar }}
+              </span>
+            </div>
+
+            <div class="reunion-badges">
+              @if (reserva.estado === 'confirmada') {
+                <span class="badge-chip badge-confirmada">
+                  <i data-lucide="circle-check"></i>
+                  Confirmada
+                </span>
+              } @else {
+                <span class="badge-chip badge-pendiente">
+                  <i data-lucide="clock"></i>
+                  Pendiente
+                </span>
+              }
+
+              @if (reserva.checkin) {
+                <span class="badge-chip badge-checkin">
+                  {{ reserva.checkin }}
+                </span>
+              }
+
+              @if (reserva.cantidadInternos > 0) {
+                <span class="badge-chip badge-interno">
+                  <i data-lucide="building-2"></i>
+                  {{ reserva.cantidadInternos }} interno(s)
+                </span>
+              }
+
+              @if (reserva.externos) {
+                <span class="badge-chip badge-externo">
+                  <i data-lucide="user"></i>
+                  {{ reserva.cantidadExternos }} externo(s)
+                </span>
+              }
+
+              @if (reserva.epp) {
+                <span class="badge-chip badge-epp">
+                  <i data-lucide="hard-hat"></i>
+                  {{ reserva.estadoEpp }}
+                </span>
+              }
+            </div>
+
+            <div class="participant-pill-list">
+              @for (persona of getParticipantes(reserva); track $index) {
+                <span
+                  class="participant-pill"
+                  [ngClass]="getParticipantRoleClass(persona)"
+                >
+                  {{ persona.nombre || 'Sin nombre' }}
+
+                  <span class="participant-pill-role">
+                    {{ getParticipantRoleLabel(persona) }}
+                  </span>
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="reunion-actions">
+            @if (reserva.mostrarQr) {
+              <button
+                class="btn-action btn-qr"
+                type="button"
+                (click)="mostrarQR(reserva)"
+              >
+                <i data-lucide="qr-code"></i>
+                Mostrar QR
+              </button>
+            }
+
+            <button
+              class="btn-action"
+              type="button"
+              (click)="editarReserva(reserva)"
+            >
+              <i data-lucide="pencil"></i>
+              Editar
+            </button>
+
+            <button
+              class="btn-action btn-delete"
+              type="button"
+              (click)="eliminarReserva(reserva)"
+            >
+              <i data-lucide="trash-2"></i>
+              Eliminar
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (qrVisible) {
+    <div
+      class="modal-qr"
+      style="display:flex"
+      (click)="cerrarQR()"
+    >
+      <div
+        class="modal-qr-content"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          class="cerrar-modal"
+          type="button"
+          (click)="cerrarQR()"
+        >
+          ×
+        </button>
+
+        <h2>QR de ingreso</h2>
+
+        <div
+          class="qr-box"
+          [innerHTML]="qrHtml"
+        ></div>
+
+        <p class="qr-helper-text">
+          Presenta este QR en recepción.
+        </p>
+
+        <p class="qr-text">
+          {{ qrTexto }}
+        </p>
+      </div>
+    </div>
+  }
+</div>
